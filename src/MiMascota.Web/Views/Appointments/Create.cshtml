@@ -1,0 +1,73 @@
+@model AppointmentFormViewModel
+@{
+    ViewData["Title"] = "Nueva cita";
+}
+<h1 class="h3 mb-3">Nueva cita</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form asp-action="Create" method="post" class="card card-body" id="appointment-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="PetId" class="form-label"></label>
+                <select asp-for="PetId" asp-items="Model.Pets" class="form-select">
+                    <option value="">Selecciona una mascota…</option>
+                </select>
+                <span asp-validation-for="PetId" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-7">
+                    <label asp-for="ServiceId" class="form-label"></label>
+                    <select asp-for="ServiceId" asp-items="Model.Services" class="form-select">
+                        <option value="">Selecciona un servicio…</option>
+                    </select>
+                    <span asp-validation-for="ServiceId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="Date" class="form-label"></label>
+                    <input asp-for="Date" type="date" class="form-control" value="@Model.Date?.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="Date" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Horarios disponibles</label>
+                @* Filled by wwwroot/js/appointment-create.js with the JSON from /Appointments/Availability *@
+                <div id="slots" class="slot-grid"
+                     data-availability-url="@Url.Action("Availability", "Appointments")"
+                     data-selected="@Model.StartTime?.ToString("HH:mm")"></div>
+                <div id="slots-message" class="form-text"></div>
+                <span asp-validation-for="StartTime" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Síntomas, indicaciones, etc. (opcional)"></textarea>
+                <span asp-validation-for="Notes" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Agendar cita</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-4 mt-3 mt-lg-0">
+        <div class="card card-body small text-muted">
+            <h2 class="h6 text-body">¿Cómo funciona?</h2>
+            <ul class="mb-0 ps-3">
+                <li>Elige servicio y fecha: los horarios libres se cargan al instante, sin recargar la página.</li>
+                <li>Solo aparecen horarios que no se empalman con otras citas y que terminan antes del cierre.</li>
+                <li>La clínica atiende de lunes a sábado de 9:00 a 18:00.</li>
+                <li>La cita se crea como <strong>Pendiente</strong> y se confirma desde la lista de citas.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/appointment-create.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,55 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 mb-0">Agenda de hoy</h1>
+        <div class="text-muted text-capitalize">@Model.Today.ToString("dddd d 'de' MMMM 'de' yyyy")</div>
+    </div>
+    <a class="btn btn-primary" asp-controller="Appointments" asp-action="Create">
+        <i class="bi bi-calendar-plus"></i> Agendar cita
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    @foreach (var status in Enum.GetValues<AppointmentStatus>())
+    {
+        <div class="col-6 col-md-3">
+            <a class="card stat-card text-decoration-none h-100"
+               asp-controller="Appointments" asp-action="Index"
+               asp-route-date="@Model.Today.ToString("yyyy-MM-dd")" asp-route-status="@status">
+                <div class="card-body">
+                    <div class="small text-muted">@status.ToDisplayName()</div>
+                    <div class="fs-2 fw-semibold text-body">@Model.CountFor(status)</div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-header bg-white fw-semibold">Citas del día</div>
+    @if (Model.TodayAppointments.Count == 0)
+    {
+        <div class="card-body text-muted">No hay citas para hoy.</div>
+    }
+    else
+    {
+        <ul class="list-group list-group-flush">
+            @foreach (var a in Model.TodayAppointments)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-semibold me-2">@a.Start.ToString("HH:mm")–@a.End.ToString("HH:mm")</span>
+                        @a.Pet?.Name <span class="text-muted">· @a.VetService?.Name · @a.Pet?.Owner?.Name</span>
+                    </div>
+                    <partial name="_StatusBadge" model="a.Status" />
+                </li>
+            }
+        </ul>
+    }
+    <div class="card-footer bg-white">
+        <a asp-controller="Appointments" asp-action="Index" asp-route-date="@Model.Today.ToString("yyyy-MM-dd")">Ver y administrar las citas de hoy →</a>
+    </div>
+</div>

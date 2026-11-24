@@ -1,0 +1,41 @@
+namespace MiMascota.Web.Models;
+
+public enum AppointmentStatus
+{
+    Pending,
+    Confirmed,
+    Attended,
+    Cancelled
+}
+
+/// <summary>Display helpers so the UI can show statuses in Spanish.</summary>
+public static class AppointmentStatusExtensions
+{
+    public static string ToDisplayName(this AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Pending => "Pendiente",
+        AppointmentStatus.Confirmed => "Confirmada",
+        AppointmentStatus.Attended => "Atendida",
+        AppointmentStatus.Cancelled => "Cancelada",
+        _ => status.ToString()
+    };
+
+    /// <summary>Bootstrap badge class for each status.</summary>
+    public static string ToBadgeClass(this AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Pending => "text-bg-warning",
+        AppointmentStatus.Confirmed => "text-bg-primary",
+        AppointmentStatus.Attended => "text-bg-success",
+        AppointmentStatus.Cancelled => "text-bg-secondary",
+        _ => "text-bg-light"
+    };
+
+    /// <summary>Text for the button that moves an appointment INTO this status.</summary>
+    public static string ToActionLabel(this AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Confirmed => "Confirmar",
+        AppointmentStatus.Attended => "Marcar atendida",
+        AppointmentStatus.Cancelled => "Cancelar",
+        _ => status.ToDisplayName()
+    };
+}

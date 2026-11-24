@@ -1,0 +1,58 @@
+:root {
+    --mm-primary: #0f766e;
+    --mm-primary-dark: #115e59;
+}
+
+body {
+    background-color: #f5f7f8;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+.app-navbar {
+    background-color: var(--mm-primary);
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--mm-primary);
+    --bs-btn-border-color: var(--mm-primary);
+    --bs-btn-hover-bg: var(--mm-primary-dark);
+    --bs-btn-hover-border-color: var(--mm-primary-dark);
+    --bs-btn-active-bg: var(--mm-primary-dark);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--mm-primary);
+    --bs-btn-border-color: var(--mm-primary);
+    --bs-btn-hover-bg: var(--mm-primary);
+    --bs-btn-hover-border-color: var(--mm-primary);
+    --bs-btn-active-bg: var(--mm-primary);
+    --bs-btn-active-border-color: var(--mm-primary);
+}
+
+a {
+    color: var(--mm-primary);
+}
+
+.stat-card {
+    transition: box-shadow .15s ease-in-out;
+}
+
+.stat-card:hover {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+}
+
+.slot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.slot-grid .btn {
+    min-width: 4.5rem;
+}
