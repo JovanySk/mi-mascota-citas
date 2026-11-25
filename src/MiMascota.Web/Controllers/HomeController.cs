@@ -1,13 +1,17 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MiMascota.Web.Data;
 using MiMascota.Web.Options;
+using MiMascota.Web.Security;
 using MiMascota.Web.Services;
 using MiMascota.Web.ViewModels;
 
 namespace MiMascota.Web.Controllers;
 
+/// <summary>The public landing page; staff also see today's agenda and the quick booking card.</summary>
+[AllowAnonymous]
 public class HomeController(
     IAppointmentService appointments,
     AppDbContext db,
@@ -30,10 +34,14 @@ public class HomeController(
             quickDate = quickDate.AddDays(1);
         }
 
+        // Owners' names and appointment states are only loaded for logged-in staff.
+        var isStaff = User.IsStaff();
+
         var model = new DashboardViewModel
         {
+            IsStaff = isStaff,
             Today = today,
-            TodayAppointments = await appointments.ListAsync(today, status: null),
+            TodayAppointments = isStaff ? await appointments.ListAsync(today, status: null) : [],
             HoursLabel = clinic.HoursLabel(),
             OpenDaysLabel = clinic.OpenDaysLabel(),
             SlotMinutes = clinic.SlotMinutes,

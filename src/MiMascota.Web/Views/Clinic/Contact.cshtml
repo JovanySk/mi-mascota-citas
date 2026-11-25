@@ -6,15 +6,25 @@
 @{
     ViewData["Title"] = "Contacto";
     var clinic = ClinicOptions.Value;
+    var service = ViewData["Service"] as string;
 }
 <header class="page-head">
     <div class="page-head-text">
         <span class="eyebrow">Ayuda</span>
         <h1 class="page-title">Contacto</h1>
-        <p class="page-sub">¿Una duda, un cambio de cita o una solicitud sobre tus datos? Escríbenos y te respondemos.</p>
-        <div class="page-actions">
-            <a class="mm-btn mm-btn-ghost" asp-action="Messages"><i class="bi bi-inbox-fill" aria-hidden="true"></i> Mensajes (personal)</a>
-        </div>
+        <p class="page-sub">¿Quieres agendar una cita, cambiarla o tienes una duda? Escríbenos y te respondemos para confirmar el horario.</p>
+        @if (User.IsStaff())
+        {
+            <div class="page-actions">
+                <a class="mm-btn mm-btn-ghost" asp-action="Messages"><i class="bi bi-inbox-fill" aria-hidden="true"></i> Mensajes recibidos</a>
+            </div>
+        }
+        else if (service is not null)
+        {
+            <div class="page-actions">
+                <span class="chip-soft"><i class="bi bi-calendar2-heart" aria-hidden="true"></i> Servicio: @service</span>
+            </div>
+        }
     </div>
     <span class="page-giant" aria-hidden="true">hola</span>
     <img class="page-pet page-pet-salchicha" src="~/img/mascotas/salchicha-enfermera.webp" alt="" width="921" height="583" />
@@ -52,7 +62,7 @@
         <ul class="fact-list">
             <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <a asp-action="Directions">Centro, Tantoyuca, Veracruz</a></li>
             <li><i class="bi bi-clock-fill" aria-hidden="true"></i> <a asp-action="Hours">@clinic.OpenDaysLabel() · @clinic.HoursLabel()</a></li>
-            <li><i class="bi bi-calendar2-plus" aria-hidden="true"></i> <a asp-controller="Appointments" asp-action="Create">Agendar una cita</a></li>
+            <li><i class="bi bi-tags-fill" aria-hidden="true"></i> <a asp-controller="Services" asp-action="Index">Servicios y precios</a></li>
         </ul>
         <div class="mt-3">
             <partial name="_OpenBadge" model="ClinicHours.GetStatus()" />

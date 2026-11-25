@@ -18,7 +18,7 @@
         <h1 class="page-title">Sobre nosotros</h1>
         <p class="page-sub">Una clínica pequeña en el centro de Tantoyuca, hecha para que tu mascota se sienta en casa.</p>
         <div class="page-actions">
-            <a class="mm-btn mm-btn-primary" asp-controller="Appointments" asp-action="Create">+ Agendar una cita</a>
+            <a class="mm-btn mm-btn-primary" href="@BookingLinks.For(Url, User)">+ Agendar una cita</a>
             <a class="mm-btn mm-btn-ghost" asp-action="Directions">Cómo llegar</a>
         </div>
     </div>

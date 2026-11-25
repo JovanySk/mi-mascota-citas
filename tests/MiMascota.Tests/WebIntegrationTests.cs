@@ -1,54 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using MiMascota.Web.Data;
 using MiMascota.Web.Models;
 
 namespace MiMascota.Tests;
-
-/// <summary>Runs the real app against a temporary SQLite file without demo data.</summary>
-public sealed class MiMascotaWebFactory : WebApplicationFactory<Program>
-{
-    private readonly string _databasePath =
-        Path.Combine(Path.GetTempPath(), $"mimascota-tests-{Guid.NewGuid():N}.db");
-
-    /// <summary>Uploaded photos go here instead of the real wwwroot.</summary>
-    public string PhotosRoot { get; } = Path.Combine(Path.GetTempPath(), $"mimascota-tests-photos-{Guid.NewGuid():N}");
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseEnvironment("Development");
-        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["Database:Provider"] = "Sqlite",
-            ["Database:SeedDemoData"] = "false",
-            ["ConnectionStrings:Sqlite"] = $"Data Source={_databasePath}",
-            ["PetPhotos:WebRootPath"] = PhotosRoot
-        }));
-    }
-
-    /// <summary>Runs code against the app's database (for test setup).</summary>
-    public T WithDb<T>(Func<AppDbContext, T> action)
-    {
-        using var scope = Services.CreateScope();
-        return action(scope.ServiceProvider.GetRequiredService<AppDbContext>());
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        SqliteConnection.ClearAllPools();
-        try { File.Delete(_databasePath); } catch (IOException) { /* best effort */ }
-        try { if (Directory.Exists(PhotosRoot)) Directory.Delete(PhotosRoot, recursive: true); } catch (IOException) { /* best effort */ }
-    }
-}
 
 public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<MiMascotaWebFactory>
 {
@@ -69,7 +26,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     [Fact]
     public async Task Main_pages_render()
     {
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
 
         foreach (var url in new[] { "/", "/Appointments", "/Appointments/Create", "/Owners", "/Pets", "/Pets/Create", "/Services" })
         {
@@ -83,7 +40,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     {
         var (_, serviceId) = CreatePetAndService(30);
         var day = FutureOpenDay();
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
 
         var json = await client.GetFromJsonAsync<JsonElement>(
             $"/Appointments/Availability?date={day:yyyy-MM-dd}&serviceId={serviceId}");
@@ -101,7 +58,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
         var (_, serviceId) = CreatePetAndService(30);
         var sunday = FutureOpenDay();
         while (sunday.DayOfWeek != DayOfWeek.Sunday) sunday = sunday.AddDays(1);
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
 
         var json = await client.GetFromJsonAsync<JsonElement>(
             $"/Appointments/Availability?date={sunday:yyyy-MM-dd}&serviceId={serviceId}");
@@ -121,7 +78,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
             var service = db.VetServices.Find(serviceId)!;
             return TestData.AddAppointment(db, pet, service, day.At(12)); // 12:00–13:00
         });
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
         var token = await GetAntiforgeryTokenAsync(client, "/Appointments/Create");
 
         var response = await client.PostAsync("/Appointments/Create", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -145,7 +102,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
         var (petId, serviceId) = CreatePetAndService(30);
         var day = FutureOpenDay().AddDays(1);
         if (day.DayOfWeek == DayOfWeek.Sunday) day = day.AddDays(1);
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var client = await factory.CreateStaffClientAsync(allowAutoRedirect: false);
         var token = await GetAntiforgeryTokenAsync(client, "/Appointments/Create");
 
         var response = await client.PostAsync("/Appointments/Create", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -167,7 +124,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     [Fact]
     public async Task Changing_status_without_antiforgery_token_is_rejected()
     {
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
 
         var response = await client.PostAsync("/Appointments/ChangeStatus/1",
             new FormUrlEncodedContent(new Dictionary<string, string> { ["status"] = "Confirmed" }));
@@ -179,7 +136,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     public async Task Quick_create_registers_a_pet_with_photo_for_an_existing_owner()
     {
         var ownerId = factory.WithDb(db => TestData.AddPet(db, "Mascota previa").OwnerId);
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
         var token = await GetAntiforgeryTokenAsync(client, "/Appointments/Create");
 
         using var form = new MultipartFormDataContent
@@ -202,14 +159,14 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
         var saved = factory.WithDb(db => db.Pets.Single(p => p.Id == id));
         Assert.Equal(ownerId, saved.OwnerId);
         Assert.Equal(saved.PhotoPath, json.GetProperty("avatar").GetString());
-        Assert.StartsWith("/uploads/mascotas/", saved.PhotoPath);
-        Assert.True(File.Exists(Path.Combine(factory.PhotosRoot, "uploads", "mascotas", Path.GetFileName(saved.PhotoPath!))));
+        Assert.StartsWith("/fotos/mascotas/", saved.PhotoPath);
+        Assert.True(File.Exists(Path.Combine(factory.PhotosRoot, Path.GetFileName(saved.PhotoPath!))));
     }
 
     [Fact]
     public async Task Quick_create_can_register_the_owner_too()
     {
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
         var token = await GetAntiforgeryTokenAsync(client, "/Appointments/Create");
 
         var response = await client.PostAsync("/Pets/QuickCreate", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -234,7 +191,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     [Fact]
     public async Task Quick_create_returns_spanish_validation_errors_as_json()
     {
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
         var token = await GetAntiforgeryTokenAsync(client, "/Appointments/Create");
         var before = factory.WithDb(db => db.Pets.Count());
 
@@ -262,7 +219,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     [Fact]
     public async Task Quick_create_without_antiforgery_token_is_rejected()
     {
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
 
         var response = await client.PostAsync("/Pets/QuickCreate",
             new FormUrlEncodedContent(new Dictionary<string, string> { ["Name"] = "Intruso", ["Species"] = "Perro" }));
@@ -275,7 +232,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
     public async Task Pet_form_rejects_a_photo_that_is_not_an_image()
     {
         var ownerId = factory.WithDb(db => TestData.AddPet(db, "Otra mascota").OwnerId);
-        var client = factory.CreateClient();
+        var client = await factory.CreateStaffClientAsync();
         var token = await GetAntiforgeryTokenAsync(client, "/Pets/Create");
 
         using var form = new MultipartFormDataContent
@@ -294,11 +251,6 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
         Assert.False(factory.WithDb(db => db.Pets.Any(p => p.Name == "Kiwi")));
     }
 
-    private static async Task<string> GetAntiforgeryTokenAsync(HttpClient client, string url)
-    {
-        var html = await client.GetStringAsync(url);
-        var match = Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"");
-        Assert.True(match.Success, "Antiforgery token not found in the form.");
-        return match.Groups[1].Value;
-    }
+    private static Task<string> GetAntiforgeryTokenAsync(HttpClient client, string url) =>
+        MiMascotaWebFactory.GetAntiforgeryTokenAsync(client, url);
 }

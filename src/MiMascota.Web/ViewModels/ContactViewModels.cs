@@ -25,6 +25,11 @@ public class ContactFormViewModel
     [Required(ErrorMessage = "Escribe tu mensaje.")]
     [StringLength(1000, MinimumLength = 10, ErrorMessage = "El mensaje debe tener entre {2} y {1} caracteres.")]
     public string Message { get; set; } = string.Empty;
+
+    /// <summary>Text prefilled when a visitor comes from "Agenda una cita" or a service link.</summary>
+    public static string AppointmentRequest(string? serviceName = null) => serviceName is null
+        ? "Hola, quiero agendar una cita para mi mascota. ¿Qué horarios tienen disponibles?"
+        : $"Hola, quiero agendar una cita de «{serviceName}» para mi mascota. ¿Qué horarios tienen disponibles?";
 }
 
 public class ContactMessagesViewModel

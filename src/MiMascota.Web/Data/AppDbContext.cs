@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MiMascota.Web.Models;
 
 namespace MiMascota.Web.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+/// <summary>Clinic data plus the ASP.NET Core Identity tables for the staff accounts (AspNetUsers, AspNetRoles...).</summary>
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Owner> Owners => Set<Owner>();
     public DbSet<Pet> Pets => Set<Pet>();
@@ -13,6 +15,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder); // Identity tables
+
         modelBuilder.Entity<Owner>(entity =>
         {
             entity.Property(o => o.Name).HasMaxLength(100);

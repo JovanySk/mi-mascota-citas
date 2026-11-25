@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MiMascota.Web.Data;
+using MiMascota.Web.Security;
 using MiMascota.Web.Models;
 using MiMascota.Web.Services;
 using MiMascota.Web.ViewModels;
@@ -10,6 +12,7 @@ using MiMascota.Web.ViewModels;
 namespace MiMascota.Web.Controllers;
 
 /// <summary>CRUD for pets, their photo, and the quick registration used by the booking form.</summary>
+[Authorize(Roles = Roles.AnyStaff)]
 public class PetsController(AppDbContext db, IPetPhotoStorage photos) : Controller
 {
     private const string PhotoField = "Photo";

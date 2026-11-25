@@ -54,6 +54,9 @@ public class AppointmentListViewModel
 /// <summary>Home page: landing sections fed with the real agenda of the day.</summary>
 public class DashboardViewModel
 {
+    /// <summary>Logged-in staff see today's agenda and the quick booking card; visitors see the public version.</summary>
+    public bool IsStaff { get; set; }
+
     public DateOnly Today { get; set; }
     public IReadOnlyList<Appointment> TodayAppointments { get; set; } = [];
 

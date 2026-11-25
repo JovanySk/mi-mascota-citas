@@ -1,13 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiMascota.Web.Data;
 using MiMascota.Web.Models;
+using MiMascota.Web.Security;
 
 namespace MiMascota.Web.Controllers;
 
-/// <summary>Simple CRUD for the clinic's services (consultation, vaccination...).</summary>
+/// <summary>
+/// The clinic's services (consultation, vaccination...). The list is public (names, durations and prices);
+/// creating, editing and deleting is for the Administrador role only.
+/// </summary>
+[Authorize(Roles = Roles.Admin)]
 public class ServicesController(AppDbContext db) : Controller
 {
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var services = await db.VetServices.AsNoTracking().OrderBy(s => s.Name).ToListAsync();

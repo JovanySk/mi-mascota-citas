@@ -57,9 +57,9 @@ public class PetAvatarTests
     [Fact]
     public void Uploaded_photo_wins_over_the_illustration()
     {
-        var pet = new Pet { Species = "Ave", PhotoPath = "/uploads/mascotas/abc.jpg" };
+        var pet = new Pet { Species = "Ave", PhotoPath = "/fotos/mascotas/0123456789abcdef0123456789abcdef.webp" };
 
-        Assert.Equal("/uploads/mascotas/abc.jpg", PetAvatar.ImageFor(pet));
+        Assert.Equal("/fotos/mascotas/0123456789abcdef0123456789abcdef.webp", PetAvatar.ImageFor(pet));
         Assert.Equal("/img/mascotas/avatar/cotorro.webp", PetAvatar.For(pet));
     }
 

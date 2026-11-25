@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiMascota.Web.Data;
+using MiMascota.Web.Security;
 using MiMascota.Web.Models;
 
 namespace MiMascota.Web.Controllers;
 
 /// <summary>Simple CRUD for pet owners (no business rules, so it uses the DbContext directly).</summary>
+[Authorize(Roles = Roles.AnyStaff)]
 public class OwnersController(AppDbContext db) : Controller
 {
     public async Task<IActionResult> Index(string? search)

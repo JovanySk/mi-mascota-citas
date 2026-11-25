@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MiMascota.Web.Data;
+using MiMascota.Web.Security;
 using MiMascota.Web.Models;
 using MiMascota.Web.Services;
 using MiMascota.Web.ViewModels;
@@ -12,6 +14,7 @@ namespace MiMascota.Web.Controllers;
 /// Thin controller: it only translates HTTP requests into service calls.
 /// Booking rules live in AppointmentService and AvailabilityService.
 /// </summary>
+[Authorize(Roles = Roles.AnyStaff)]
 public class AppointmentsController(
     IAppointmentService appointments,
     IAvailabilityService availability,

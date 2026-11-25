@@ -1,0 +1,50 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Entrar";
+}
+<section class="mm-card auth-card" aria-labelledby="login-title">
+    <div class="auth-art" aria-hidden="true">
+        <span class="giant auth-giant">hola</span>
+        <img class="auth-pet" src="~/img/mascotas/vet-gato.webp" alt="" width="549" height="900" />
+        <span class="auth-paw"><partial name="_PawIcon" /></span>
+    </div>
+
+    <div class="auth-body">
+        <span class="eyebrow">Personal de la clínica</span>
+        <h1 id="login-title" class="page-title">Entrar</h1>
+        <p class="page-sub">Agenda, dueños, mascotas y mensajes del equipo de Mi Mascota.</p>
+
+        <form asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="mm-form auth-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger" role="alert"></div>
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" placeholder="tu@mimascota.mx" autofocus />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+            <div class="form-check mm-check mb-4">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="mm-btn mm-btn-primary mm-btn-lg w-100">
+                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Entrar
+            </button>
+        </form>
+
+        <p class="auth-note">
+            ¿Eres cliente y quieres una cita? <a asp-controller="Clinic" asp-action="Contact" asp-route-motivo="cita">Solicítala aquí</a>.
+            ¿Olvidaste tu contraseña? Pide al administrador una temporal.
+        </p>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

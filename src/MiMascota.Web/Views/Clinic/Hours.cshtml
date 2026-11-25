@@ -14,7 +14,7 @@
         <p class="page-sub">Atendemos con cita en horarios de @slotMinutes minutos. Hora del centro de México.</p>
         <div class="page-actions">
             <partial name="_OpenBadge" model="status" />
-            <a class="mm-btn mm-btn-primary" asp-controller="Appointments" asp-action="Create">+ Agendar una cita</a>
+            <a class="mm-btn mm-btn-primary" href="@BookingLinks.For(Url, User)">+ Agendar una cita</a>
         </div>
     </div>
     <span class="page-giant" aria-hidden="true">horario</span>

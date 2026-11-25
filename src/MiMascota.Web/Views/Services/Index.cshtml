@@ -1,6 +1,7 @@
 @model IReadOnlyList<VetService>
 @{
     ViewData["Title"] = "Servicios";
+    var isAdmin = User.IsAdmin();
 
     // Icon per kind of service (by name), only for the cards.
     static string IconFor(string name)
@@ -19,9 +20,18 @@
         <span class="eyebrow">Catálogo</span>
         <h1 class="page-title">Servicios</h1>
         <p class="page-sub">Cada servicio tiene su propia duración: la agenda solo ofrece horarios donde cabe completo.</p>
-        <div class="page-actions">
-            <a class="mm-btn mm-btn-primary" asp-action="Create">+ Nuevo servicio</a>
-        </div>
+        @if (isAdmin)
+        {
+            <div class="page-actions">
+                <a class="mm-btn mm-btn-primary" asp-action="Create">+ Nuevo servicio</a>
+            </div>
+        }
+        else if (!User.IsStaff())
+        {
+            <div class="page-actions">
+                <a class="mm-btn mm-btn-primary" href="@BookingLinks.For(Url, User)">Solicita tu cita</a>
+            </div>
+        }
     </div>
     <span class="page-giant" aria-hidden="true">cuidado</span>
     <img class="page-pet page-pet-vet" src="~/img/mascotas/vet-perro.webp" alt="" width="464" height="900" />
@@ -33,7 +43,14 @@
         <img src="~/img/mascotas/avatar/vet-perro.webp" alt="" width="96" height="96" />
         <div>
             <strong>No hay servicios registrados.</strong>
-            <p class="mb-0"><a asp-action="Create">Agrega el primero</a>.</p>
+            @if (isAdmin)
+            {
+                <p class="mb-0"><a asp-action="Create">Agrega el primero</a>.</p>
+            }
+            else
+            {
+                <p class="mb-0">Pronto publicaremos el catálogo de servicios.</p>
+            }
         </div>
     </div>
 }
@@ -50,12 +67,15 @@ else
                     <span class="chip-soft"><i class="bi bi-clock" aria-hidden="true"></i> @service.DurationMinutes min</span>
                 </div>
                 <div class="card-actions">
-                    <a class="mm-btn mm-btn-sm mm-btn-primary" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@service.Id">Agendar</a>
-                    <a class="mm-btn mm-btn-sm mm-btn-ghost" asp-action="Edit" asp-route-id="@service.Id">Editar</a>
-                    <form asp-action="Delete" asp-route-id="@service.Id" method="post" class="d-inline"
-                          data-confirm="¿Eliminar el servicio @service.Name?">
-                        <button type="submit" class="mm-btn mm-btn-sm mm-btn-danger-ghost">Eliminar</button>
-                    </form>
+                    <a class="mm-btn mm-btn-sm mm-btn-primary" href="@BookingLinks.For(Url, User, service.Id, service.Name)">@(User.IsStaff() ? "Agendar" : "Solicitar cita")</a>
+                    @if (isAdmin)
+                    {
+                        <a class="mm-btn mm-btn-sm mm-btn-ghost" asp-action="Edit" asp-route-id="@service.Id">Editar</a>
+                        <form asp-action="Delete" asp-route-id="@service.Id" method="post" class="d-inline"
+                              data-confirm="¿Eliminar el servicio @service.Name?">
+                            <button type="submit" class="mm-btn mm-btn-sm mm-btn-danger-ghost">Eliminar</button>
+                        </form>
+                    }
                 </div>
             </li>
         }

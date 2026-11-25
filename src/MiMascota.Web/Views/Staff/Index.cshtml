@@ -1,0 +1,121 @@
+@model StaffPageViewModel
+@{
+    ViewData["Title"] = "Personal";
+    var active = Model.Members.Count(m => m.State == StaffState.Active);
+}
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">Administración</span>
+        <h1 class="page-title">Personal</h1>
+        <p class="page-sub">Cuentas del equipo que pueden entrar al sistema: @active activa@(active == 1 ? "" : "s") de @Model.Members.Count.</p>
+    </div>
+    <span class="page-giant" aria-hidden="true">equipo</span>
+    <img class="page-pet page-pet-vet" src="~/img/mascotas/vet-perro.webp" alt="" width="464" height="900" />
+</header>
+
+<div class="staff-split">
+    <section aria-labelledby="staff-list-title">
+        <h2 id="staff-list-title" class="visually-hidden">Cuentas del personal</h2>
+        <ul class="row-list">
+            @foreach (var member in Model.Members)
+            {
+                var initial = member.FullName.Length > 0 ? char.ToUpper(member.FullName[0]).ToString() : "?";
+                <li class="mm-card staff-row @(member.State == StaffState.Active ? "" : "is-off")">
+                    <span class="user-initial staff-initial" aria-hidden="true">@initial</span>
+                    <div class="staff-info">
+                        <h3 class="card-name">
+                            @member.FullName
+                            @if (member.IsCurrentUser)
+                            {
+                                <span class="chip-soft">Tú</span>
+                            }
+                        </h3>
+                        <div class="card-meta">
+                            <span><i class="bi bi-envelope" aria-hidden="true"></i> @member.Email</span>
+                            <span><i class="bi @(member.Role == Roles.Admin ? "bi-shield-lock" : "bi-person-badge")" aria-hidden="true"></i> @member.Role</span>
+                            @if (member.MustChangePassword)
+                            {
+                                <span><i class="bi bi-key" aria-hidden="true"></i> Contraseña temporal</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="staff-actions">
+                        @switch (member.State)
+                        {
+                            case StaffState.Active:
+                                <span class="mm-badge is-attended">Activa</span>
+                                break;
+                            case StaffState.LockedOut:
+                                <span class="mm-badge is-pending" title="Bloqueo por contraseñas incorrectas">Bloqueada hasta @member.LockoutEnd!.Value.ToLocalTime().ToString("H:mm")</span>
+                                break;
+                            default:
+                                <span class="mm-badge is-cancelled">Desactivada</span>
+                                break;
+                        }
+
+                        @if (member.IsCurrentUser)
+                        {
+                            <span class="staff-self-note">No puedes desactivar tu propia cuenta</span>
+                        }
+                        else if (member.State == StaffState.Active)
+                        {
+                            <form asp-action="Disable" asp-route-id="@member.Id" method="post" class="d-inline"
+                                  data-confirm="¿Desactivar la cuenta de @member.FullName? Ya no podrá entrar al sistema.">
+                                <button type="submit" class="mm-btn mm-btn-sm mm-btn-danger-ghost">Desactivar</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Enable" asp-route-id="@member.Id" method="post" class="d-inline">
+                                <button type="submit" class="mm-btn mm-btn-sm mm-btn-primary">@(member.State == StaffState.LockedOut ? "Desbloquear" : "Activar")</button>
+                            </form>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    </section>
+
+    <form asp-action="Create" method="post" class="mm-card mm-form staff-form" novalidate aria-labelledby="new-staff-title">
+        <h2 id="new-staff-title" class="clinic-title">Nueva cuenta</h2>
+        <p class="clinic-note">Comparte la contraseña temporal en persona. Al entrar por primera vez, el sistema le pedirá elegir la suya.</p>
+        <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="NewStaff.FullName" class="form-label"></label>
+            <input asp-for="NewStaff.FullName" class="form-control" autocomplete="off" placeholder="Ej. Laura Martínez" />
+            <span asp-validation-for="NewStaff.FullName" class="field-error"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="NewStaff.Email" class="form-label"></label>
+            <input asp-for="NewStaff.Email" class="form-control" autocomplete="off" placeholder="laura@mimascota.mx" />
+            <span asp-validation-for="NewStaff.Email" class="field-error"></span>
+        </div>
+        <fieldset class="mb-3">
+            <legend class="form-label">Rol</legend>
+            <div class="role-options">
+                <label class="role-option">
+                    <input type="radio" asp-for="NewStaff.Role" value="@Roles.Reception" />
+                    <span><strong>@Roles.Reception</strong> Citas, dueños, mascotas y mensajes.</span>
+                </label>
+                <label class="role-option">
+                    <input type="radio" asp-for="NewStaff.Role" value="@Roles.Admin" />
+                    <span><strong>@Roles.Admin</strong> Todo, además de servicios y personal.</span>
+                </label>
+            </div>
+            <span asp-validation-for="NewStaff.Role" class="field-error"></span>
+        </fieldset>
+        <div class="mb-4">
+            <label asp-for="NewStaff.TemporaryPassword" class="form-label"></label>
+            <input asp-for="NewStaff.TemporaryPassword" class="form-control" autocomplete="new-password" aria-describedby="temp-password-help" />
+            <div class="form-text" id="temp-password-help">Al menos 8 caracteres, con letras y números.</div>
+            <span asp-validation-for="NewStaff.TemporaryPassword" class="field-error"></span>
+        </div>
+
+        <button type="submit" class="mm-btn mm-btn-primary mm-btn-lg w-100">+ Crear cuenta</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

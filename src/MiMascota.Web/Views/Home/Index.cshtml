@@ -1,4 +1,5 @@
 @model DashboardViewModel
+@inject IClinicHours ClinicHours
 @{
     ViewData["Title"] = "Inicio";
     string Capitalize(string text) => text.Length == 0 ? text : char.ToUpper(text[0]) + text[1..];
@@ -11,6 +12,10 @@
         : Model.QuickDate.ToString("dddd d 'de' MMMM");
     ViewData["ReturnUrl"] = "/#agenda"; // state-change buttons come back to this section
     ViewData["Compact"] = true;
+
+    // Visitors never get owners' names or appointment data: they see the public version of each block.
+    var staff = Model.IsStaff;
+    var speciesCount = SpeciesCatalog.Options.Count(o => o.Value != SpeciesCatalog.Other);
 
     (string Image, string Label, string Alt)[] family =
     [
@@ -54,7 +59,7 @@
             </div>
             <p class="hero-sub">Agenda la consulta de tu mejor amigo en segundos: solo te mostramos horarios libres, sin empalmes.</p>
             <div class="hero-ctas">
-                <a class="mm-cta" asp-controller="Appointments" asp-action="Create">
+                <a class="mm-cta" href="@BookingLinks.For(Url, User)">
                     <span class="mm-cta-text"><strong>Agenda una cita</strong><span>en segundos</span></span>
                     <i class="bi bi-whatsapp" aria-hidden="true"></i>
                 </a>
@@ -64,11 +69,22 @@
     </div>
 
     <ul class="hero-cards" aria-label="Resumen de la clínica">
-        <li class="info-card">
-            <span class="info-num" data-count="@Model.TodayAppointments.Count">@Model.TodayAppointments.Count</span>
-            <span class="info-label">@(Model.TodayAppointments.Count == 1 ? "cita hoy" : "citas hoy")</span>
-            <span class="info-sub">@pendingToday por confirmar</span>
-        </li>
+        @if (staff)
+        {
+            <li class="info-card">
+                <span class="info-num" data-count="@Model.TodayAppointments.Count">@Model.TodayAppointments.Count</span>
+                <span class="info-label">@(Model.TodayAppointments.Count == 1 ? "cita hoy" : "citas hoy")</span>
+                <span class="info-sub">@pendingToday por confirmar</span>
+            </li>
+        }
+        else
+        {
+            <li class="info-card">
+                <span class="info-num" data-count="@speciesCount">@speciesCount</span>
+                <span class="info-label">especies atendidas</span>
+                <span class="info-sub">perros, gatos y exóticos</span>
+            </li>
+        }
         <li class="info-card">
             <span class="info-num">@Model.HoursLabel</span>
             <span class="info-label">@Model.OpenDaysLabel</span>
@@ -77,7 +93,7 @@
         <li class="info-card">
             <span class="info-num" data-count="0">0</span>
             <span class="info-label">empalmes</span>
-            <span class="info-sub">el sistema los bloquea</span>
+            <span class="info-sub">@(staff ? "el sistema los bloquea" : "tu hora es solo tuya")</span>
         </li>
     </ul>
 </section>
@@ -107,7 +123,9 @@
 @* ───────── Nuestro equipo ───────── *@
 <partial name="_Team" />
 
-@* ───────── Agenda de hoy (the real system panel) ───────── *@
+@* ───────── Agenda de hoy (the real system panel, staff only) ───────── *@
+@if (staff)
+{
 <section class="agenda" id="agenda" aria-labelledby="agenda-title">
     <div class="mm-container">
         <div class="agenda-grid">
@@ -193,6 +211,60 @@
         </div>
     </div>
 </section>
+}
+else
+{
+    var week = ClinicHours.Week();
+    <section class="agenda agenda-public" id="agendar" aria-labelledby="book-title">
+        <div class="mm-container">
+            <div class="agenda-grid">
+                <div class="agenda-main">
+                    <div class="agenda-head">
+                        <h2 id="book-title" class="section-title mb-0">¿Quieres agendar?</h2>
+                        <partial name="_OpenBadge" model="ClinicHours.GetStatus()" />
+                    </div>
+                    <p class="section-sub">Escríbenos el nombre de tu mascota, el servicio que necesita y el día que te acomoda. Te respondemos con un horario libre para que llegues y te atendamos a tiempo.</p>
+                    <ol class="book-steps">
+                        <li>
+                            <span class="book-step-num" aria-hidden="true">1</span>
+                            <div><strong>Escríbenos</strong><span>Desde Contacto, con tu teléfono o correo.</span></div>
+                        </li>
+                        <li>
+                            <span class="book-step-num" aria-hidden="true">2</span>
+                            <div><strong>Te confirmamos</strong><span>Un horario libre, sin empalmes con otras citas.</span></div>
+                        </li>
+                        <li>
+                            <span class="book-step-num" aria-hidden="true">3</span>
+                            <div><strong>Llegas a tu cita</strong><span>Con la cartilla de vacunas si la tienes.</span></div>
+                        </li>
+                    </ol>
+                    <div class="hero-ctas book-ctas">
+                        <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Clinic" asp-action="Contact" asp-route-motivo="cita">Solicita tu cita <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                        <a class="mm-btn mm-btn-ghost mm-btn-lg" asp-controller="Services" asp-action="Index">Servicios y precios</a>
+                    </div>
+                </div>
+
+                <aside class="agenda-side" aria-labelledby="hours-title">
+                    <img class="quick-hamster" src="~/img/mascotas/hamster.webp" alt="" width="519" height="726" loading="lazy" />
+                    <div class="quick-card">
+                        <h2 id="hours-title" class="quick-title">Horarios</h2>
+                        <p class="quick-sub">@Model.OpenDaysLabel · @Model.HoursLabel · citas cada @Model.SlotMinutes min</p>
+                        <ul class="mini-week">
+                            @foreach (var day in week)
+                            {
+                                <li class="@(day.IsToday ? "is-today" : null) @(day.IsClosed ? "is-closed" : null)">
+                                    <span>@day.Name</span>
+                                    <span>@(day.IsClosed ? "Cerrado" : $"{day.Opening:H:mm} – {day.Closing:H:mm}")</span>
+                                </li>
+                            }
+                        </ul>
+                        <a class="mm-btn mm-btn-dark w-100" asp-controller="Clinic" asp-action="Hours">Ver horarios y cómo llegar</a>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+}
 
 @* ───────── Bath banner ───────── *@
 <section class="bath" aria-labelledby="bath-title">
@@ -209,7 +281,7 @@
         @if (Model.BathService is { } bath)
         {
             <p class="bath-text">@bath.Name desde @bath.Price.ToString("C0") · @bath.DurationMinutes minutos.</p>
-            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@bath.Id">Reservar baño <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            <a class="mm-btn mm-btn-primary mm-btn-lg" href="@BookingLinks.For(Url, User, bath.Id, bath.Name)">Reservar baño <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         }
         else
         {

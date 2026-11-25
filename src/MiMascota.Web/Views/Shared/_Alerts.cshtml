@@ -7,6 +7,14 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
+@if (TempData["Info"] is string info)
+{
+    <div class="mm-alert mm-alert-info alert alert-dismissible fade show" role="status">
+        <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+        <span>@info</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
 @if (TempData["Error"] is string error)
 {
     <div class="mm-alert mm-alert-danger alert alert-dismissible fade show" role="alert">

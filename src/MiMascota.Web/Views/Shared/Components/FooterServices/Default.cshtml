@@ -3,7 +3,7 @@
 {
     if (link.ServiceId is int id)
     {
-        <a asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@id">@link.Label</a>
+        <a href="@BookingLinks.For(Url, User, id, link.ServiceName)">@link.Label</a>
     }
     else
     {

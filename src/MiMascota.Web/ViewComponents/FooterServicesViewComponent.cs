@@ -4,8 +4,11 @@ using MiMascota.Web.Data;
 
 namespace MiMascota.Web.ViewComponents;
 
-/// <summary>A footer link that opens the booking form with a service already selected.</summary>
-public record FooterServiceLink(string Label, int? ServiceId);
+/// <summary>
+/// A footer link for one service: staff open the booking form with it selected, visitors the
+/// contact page with the request written (see BookingLinks).
+/// </summary>
+public record FooterServiceLink(string Label, int? ServiceId, string ServiceName);
 
 /// <summary>
 /// "Servicios" column of the footer. Each label is matched to a service by name when the
@@ -40,7 +43,7 @@ public class FooterServicesViewComponent(AppDbContext db, ILogger<FooterServices
         }
 
         var links = Links
-            .Select(l => new FooterServiceLink(l.Label, ids.TryGetValue(l.ServiceName, out var id) ? id : null))
+            .Select(l => new FooterServiceLink(l.Label, ids.TryGetValue(l.ServiceName, out var id) ? id : null, l.ServiceName))
             .ToList();
         return View(links);
     }

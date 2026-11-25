@@ -1,12 +1,11 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using MiMascota.Web.Data;
 using MiMascota.Web.Models;
+using MiMascota.Web.Security;
 
 namespace MiMascota.Tests;
 
@@ -24,12 +23,17 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
         Regex.Matches(html, "href=\"([^\"]*)\"").Select(m => WebUtility.HtmlDecode(m.Groups[1].Value)).ToList();
 
     [Theory]
-    [InlineData("/")]
-    [InlineData("/clinica/nosotros")]
-    [InlineData("/contacto")]
-    public async Task Every_footer_link_returns_200(string page)
+    [InlineData("/", false)]
+    [InlineData("/clinica/nosotros", false)]
+    [InlineData("/contacto", false)]
+    [InlineData("/", true)]
+    [InlineData("/Pets", true)]
+    public async Task Every_footer_link_returns_200(string page, bool asStaff)
     {
-        var client = factory.CreateClient();
+        // No automatic redirects: a staff page answering 302 → login would not count as 200.
+        var client = asStaff
+            ? await factory.CreateStaffClientAsync(allowAutoRedirect: false)
+            : factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var links = Hrefs(Footer(await client.GetStringAsync(page)));
 
         Assert.DoesNotContain("#", links);       // no dead "#" links
@@ -52,7 +56,6 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
     [InlineData("/ayuda/terminos", "Términos de uso")]
     [InlineData("/ayuda/privacidad", "derechos ARCO")]
     [InlineData("/contacto", "Envíanos un mensaje")]
-    [InlineData("/contacto/mensajes", "Mensajes")]
     public async Task Info_pages_render(string url, string expectedText)
     {
         var response = await factory.CreateClient().GetAsync(url);
@@ -73,8 +76,11 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
     [Fact]
     public async Task Footer_links_to_home_team_section_from_other_pages()
     {
-        var html = await factory.CreateClient().GetStringAsync("/Pets");
+        var html = await factory.CreateClient().GetStringAsync("/clinica/horarios");
         Assert.Contains("href=\"/#equipo\"", Footer(html));
+
+        var staffHtml = await (await factory.CreateStaffClientAsync()).GetStringAsync("/Pets");
+        Assert.Contains("href=\"/#equipo\"", Footer(staffHtml));
 
         var home = await factory.CreateClient().GetStringAsync("/");
         Assert.Contains("id=\"equipo\"", home);
@@ -118,11 +124,18 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
             return (vaccine.Id, exotic.Id);
         });
 
-        var footer = Footer(await factory.CreateClient().GetStringAsync("/"));
+        // Staff: the booking form with the service selected.
+        var staffFooter = Footer(await (await factory.CreateStaffClientAsync()).GetStringAsync("/"));
+        Assert.Contains($"href=\"/Appointments/Create?serviceId={vaccineId}\">Vacunas</a>", staffFooter);
+        Assert.Contains($"href=\"/Appointments/Create?serviceId={exoticId}\">Exóticos</a>", WebUtility.HtmlDecode(staffFooter));
+        Assert.Contains("href=\"/Services\">Consulta general</a>", staffFooter);
 
-        Assert.Contains($"href=\"/Appointments/Create?serviceId={vaccineId}\">Vacunas</a>", footer);
-        Assert.Contains($"href=\"/Appointments/Create?serviceId={exoticId}\">Exóticos</a>", WebUtility.HtmlDecode(footer));
-        Assert.Contains("href=\"/Services\">Consulta general</a>", footer);
+        // Visitors: the contact page with the service written in the message.
+        var publicFooter = Footer(await factory.CreateClient().GetStringAsync("/"));
+        Assert.Contains("href=\"/contacto?servicio=Vacunaci%C3%B3n\">Vacunas</a>", publicFooter);
+        Assert.Contains("href=\"/contacto?servicio=Consulta%20ex%C3%B3ticos\">Exóticos</a>", WebUtility.HtmlDecode(publicFooter));
+        Assert.Contains("href=\"/Services\">Consulta general</a>", publicFooter);
+        Assert.DoesNotContain("/Appointments", publicFooter);
     }
 
     [Fact]
@@ -233,7 +246,7 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
             db.SaveChanges();
             return (older.Id, newer.Id);
         });
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var client = await factory.CreateStaffClientAsync(allowAutoRedirect: false);
 
         var html = await client.GetStringAsync("/contacto/mensajes");
         Assert.True(html.IndexOf("Mensaje nuevo", StringComparison.Ordinal) < html.IndexOf("Mensaje viejo", StringComparison.Ordinal));
@@ -248,22 +261,32 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
     }
 
     [Fact]
-    public async Task An_old_sqlite_database_without_the_contact_table_gets_it_at_startup()
+    public async Task An_old_sqlite_database_gets_the_new_tables_at_startup_and_staff_can_log_in()
     {
         var path = Path.Combine(Path.GetTempPath(), $"mimascota-old-{Guid.NewGuid():N}.db");
+        var oldPhoto = $"{Guid.NewGuid():N}.webp";
         try
         {
-            // Build a current database, then drop the new table to simulate an older mimascota.db.
+            // Build a current database, then drop the newer tables to simulate a mimascota.db
+            // from before the contact form and the staff accounts, with a photo in the old public folder.
             var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={path}").Options;
             await using (var db = new AppDbContext(options))
             {
                 await db.Database.EnsureCreatedAsync();
-                await db.Database.ExecuteSqlRawAsync("DROP TABLE \"ContactMessages\"");
+                foreach (var table in new[] { "ContactMessages", "AspNetUserTokens", "AspNetUserRoles", "AspNetUserLogins",
+                                              "AspNetUserClaims", "AspNetRoleClaims", "AspNetUsers", "AspNetRoles" })
+                {
+                    await db.Database.ExecuteSqlRawAsync("DROP TABLE \"" + table + "\"");
+                }
+                var pet = TestData.AddPet(db, "Foto vieja");
+                pet.PhotoPath = "/uploads/mascotas/" + oldPhoto;
+                await db.SaveChangesAsync();
             }
 
             await using var app = new OldDatabaseFactory(path);
-            var client = app.CreateClient();
+            var client = await app.CreateStaffClientAsync(Roles.Admin);
             Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/contacto/mensajes")).StatusCode);
+            Assert.Equal("/fotos/mascotas/" + oldPhoto, app.WithDb(db => db.Pets.Single(p => p.Name == "Foto vieja").PhotoPath));
         }
         finally
         {
@@ -272,25 +295,15 @@ public class ClinicPagesTests(MiMascotaWebFactory factory) : IClassFixture<MiMas
         }
     }
 
-    private sealed class OldDatabaseFactory(string path) : WebApplicationFactory<Program>
+    /// <summary>The normal test app, but on an existing database file.</summary>
+    private sealed class OldDatabaseFactory(string path) : MiMascotaWebFactory
     {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        protected override Dictionary<string, string?> ExtraSettings => new()
         {
-            builder.UseEnvironment("Development");
-            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Database:Provider"] = "Sqlite",
-                ["Database:SeedDemoData"] = "false",
-                ["ConnectionStrings:Sqlite"] = $"Data Source={path}"
-            }));
-        }
+            ["ConnectionStrings:Sqlite"] = $"Data Source={path}"
+        };
     }
 
-    private static async Task<string> GetAntiforgeryTokenAsync(HttpClient client, string url)
-    {
-        var html = await client.GetStringAsync(url);
-        var match = Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"");
-        Assert.True(match.Success, "Antiforgery token not found in the form.");
-        return match.Groups[1].Value;
-    }
+    private static Task<string> GetAntiforgeryTokenAsync(HttpClient client, string url) =>
+        MiMascotaWebFactory.GetAntiforgeryTokenAsync(client, url);
 }

@@ -10,6 +10,14 @@
     var isHome = controller == "Home" && action == "Index";
     // The team section lives on the home page and on "Sobre nosotros".
     var teamHref = isHome || (controller == "Clinic" && action == "About") ? "#equipo" : Url.Action("Index", "Home") + "#equipo";
+
+    // Visitors see the clinic's public pages; staff see the system (Administrador also "Personal").
+    var isStaff = User.IsStaff();
+    var isAdmin = User.IsAdmin();
+    string ActiveAction(string c, string a) => controller == c && action == a ? "active" : "";
+    string? CurrentAction(string c, string a) => controller == c && action == a ? "page" : null;
+    var displayName = User.FindFirst(StaffClaims.FullName)?.Value ?? User.Identity?.Name ?? "";
+    var initial = displayName.Length > 0 ? char.ToUpper(displayName[0]).ToString() : "?";
 }
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -39,14 +47,57 @@
                 <i class="bi bi-list" aria-hidden="true"></i>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link @Active("Home")" aria-current="@Current("Home")" asp-controller="Home" asp-action="Index">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Appointments")" aria-current="@Current("Appointments")" asp-controller="Appointments" asp-action="Index">Citas</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Owners")" aria-current="@Current("Owners")" asp-controller="Owners" asp-action="Index">Dueños</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Pets")" aria-current="@Current("Pets")" asp-controller="Pets" asp-action="Index">Mascotas</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Services")" aria-current="@Current("Services")" asp-controller="Services" asp-action="Index">Servicios</a></li>
-                </ul>
-                <a class="mm-btn mm-btn-primary mm-nav-cta" asp-controller="Appointments" asp-action="Create">+ Nueva cita</a>
+                @if (isStaff)
+                {
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link @Active("Home")" aria-current="@Current("Home")" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Appointments")" aria-current="@Current("Appointments")" asp-controller="Appointments" asp-action="Index">Citas</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Owners")" aria-current="@Current("Owners")" asp-controller="Owners" asp-action="Index">Dueños</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Pets")" aria-current="@Current("Pets")" asp-controller="Pets" asp-action="Index">Mascotas</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Services")" aria-current="@Current("Services")" asp-controller="Services" asp-action="Index">Servicios</a></li>
+                        <li class="nav-item"><a class="nav-link @ActiveAction("Clinic", "Messages")" aria-current="@CurrentAction("Clinic", "Messages")" asp-controller="Clinic" asp-action="Messages">Mensajes @await Component.InvokeAsync("UnreadMessages")</a></li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item"><a class="nav-link @Active("Staff")" aria-current="@Current("Staff")" asp-controller="Staff" asp-action="Index">Personal</a></li>
+                        }
+                    </ul>
+                    <div class="nav-end">
+                        <a class="mm-btn mm-btn-primary mm-nav-cta" asp-controller="Appointments" asp-action="Create">+ Nueva cita</a>
+                        <div class="dropdown user-menu">
+                            <button class="user-chip dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Mi cuenta: @displayName">
+                                <span class="user-initial" aria-hidden="true">@initial</span>
+                                <span class="user-text">
+                                    <strong>@displayName</strong>
+                                    <span>@User.RoleLabel()</span>
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end mm-dropdown">
+                                <li class="dropdown-header">@User.Identity?.Name</li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-key" aria-hidden="true"></i> Cambiar contraseña</a></li>
+                                @if (isAdmin)
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Staff" asp-action="Index"><i class="bi bi-people" aria-hidden="true"></i> Personal</a></li>
+                                }
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Salir</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link @Active("Home")" aria-current="@Current("Home")" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Services")" aria-current="@Current("Services")" asp-controller="Services" asp-action="Index">Servicios</a></li>
+                        <li class="nav-item"><a class="nav-link @ActiveAction("Clinic", "Hours")" aria-current="@CurrentAction("Clinic", "Hours")" asp-controller="Clinic" asp-action="Hours">Horarios</a></li>
+                        <li class="nav-item"><a class="nav-link @ActiveAction("Clinic", "Contact")" aria-current="@CurrentAction("Clinic", "Contact")" asp-controller="Clinic" asp-action="Contact">Contacto</a></li>
+                    </ul>
+                    <a class="mm-btn mm-btn-dark mm-nav-cta" asp-controller="Account" asp-action="Login"><i class="bi bi-person-lock" aria-hidden="true"></i> Entrar <span class="nav-cta-hint">· personal</span></a>
+                }
             </div>
         </nav>
     </header>
@@ -76,7 +127,7 @@
                     <ul class="footer-contact">
                         <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Directions">Centro, Tantoyuca, Veracruz</a></li>
                         <li><i class="bi bi-clock-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Hours">@clinic.OpenDaysLabel() · @clinic.HoursLabel()</a></li>
-                        <li><i class="bi bi-whatsapp" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Contact">Escríbenos para agendar</a></li>
+                        <li><i class="bi bi-whatsapp" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Contact" asp-route-motivo="cita">Escríbenos para agendar</a></li>
                     </ul>
                 </div>
                 <nav class="footer-col" aria-label="Clínica">
@@ -90,13 +141,25 @@
                     <h2>Servicios</h2>
                     @await Component.InvokeAsync("FooterServices")
                 </nav>
-                <nav class="footer-col" aria-label="Sistema">
-                    <h2>Sistema</h2>
-                    <a asp-controller="Appointments" asp-action="Index">Citas</a>
-                    <a asp-controller="Appointments" asp-action="Create">Nueva cita</a>
-                    <a asp-controller="Owners" asp-action="Index">Dueños</a>
-                    <a asp-controller="Pets" asp-action="Index">Mascotas</a>
-                </nav>
+                @if (isStaff)
+                {
+                    <nav class="footer-col" aria-label="Sistema">
+                        <h2>Sistema</h2>
+                        <a asp-controller="Appointments" asp-action="Index">Citas</a>
+                        <a asp-controller="Appointments" asp-action="Create">Nueva cita</a>
+                        <a asp-controller="Owners" asp-action="Index">Dueños</a>
+                        <a asp-controller="Pets" asp-action="Index">Mascotas</a>
+                    </nav>
+                }
+                else
+                {
+                    <nav class="footer-col" aria-label="Citas">
+                        <h2>Citas</h2>
+                        <a asp-controller="Clinic" asp-action="Contact" asp-route-motivo="cita">Solicita tu cita</a>
+                        <a asp-controller="Services" asp-action="Index">Servicios y precios</a>
+                        <a asp-controller="Account" asp-action="Login">Acceso del personal</a>
+                    </nav>
+                }
                 <nav class="footer-col" aria-label="Ayuda">
                     <h2>Ayuda</h2>
                     <a asp-controller="Clinic" asp-action="Faq">Preguntas frecuentes</a>

@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+<section class="mm-card error-card">
+    <img src="~/img/mascotas/salchicha-enfermera.webp" alt="Perro salchicha con uniforme de enfermería" width="921" height="583" />
+    <div>
+        <span class="eyebrow">Solo administración</span>
+        <h1 class="page-title">Acceso denegado</h1>
+        <p class="page-sub">Tu cuenta no tiene permiso para abrir esta sección. Si la necesitas, pídesela al administrador de la clínica.</p>
+        <div class="page-actions">
+            <a asp-controller="Home" asp-action="Index" class="mm-btn mm-btn-primary mm-btn-lg">Volver al inicio</a>
+            @if (!User.IsStaff())
+            {
+                <a asp-controller="Account" asp-action="Login" class="mm-btn mm-btn-ghost mm-btn-lg">Entrar con otra cuenta</a>
+            }
+        </div>
+    </div>
+</section>

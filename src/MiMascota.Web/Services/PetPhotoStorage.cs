@@ -1,26 +1,47 @@
 namespace MiMascota.Web.Services;
 
-/// <summary>Stores the pets' photos on disk, under wwwroot/uploads/mascotas.</summary>
+/// <summary>
+/// Stores the pets' photos on disk in a private folder (App_Data/uploads/mascotas by default, outside wwwroot),
+/// so they are not static files: PhotosController serves them to logged-in staff only.
+/// </summary>
 public interface IPetPhotoStorage
 {
     /// <summary>Checks size and real image type (by magic bytes). Returns the file extension to use.</summary>
     Result<string> Validate(IFormFile file);
 
-    /// <summary>Validates, re-encodes (WebP, no metadata, max 1000 px) and saves the photo with a random name. Returns its web path ("/uploads/mascotas/….webp").</summary>
+    /// <summary>Validates, re-encodes (WebP, no metadata, max 1000 px) and saves the photo with a random name. Returns its web path ("/fotos/mascotas/….webp").</summary>
     Task<Result<string>> SaveAsync(IFormFile file, CancellationToken cancellationToken = default);
 
     /// <summary>Deletes a photo saved by this storage. Ignores null and paths outside the uploads folder.</summary>
     void Delete(string? photoPath);
+
+    /// <summary>
+    /// Physical path of a stored photo, or null when the name is not one this storage creates
+    /// ("{32 hex chars}.webp") or the file does not exist.
+    /// </summary>
+    string? Find(string fileName);
 }
 
-public class PetPhotoStorage(string webRootPath) : IPetPhotoStorage
+/// <param name="folder">Physical folder for the files (absolute path).</param>
+public partial class PetPhotoStorage(string folder) : IPetPhotoStorage
 {
     public const long MaxBytes = 5 * 1024 * 1024;
-    public const string WebFolder = "/uploads/mascotas/";
+
+    /// <summary>URL prefix of the photos (see PhotosController).</summary>
+    public const string WebFolder = "/fotos/mascotas/";
+
+    /// <summary>Default folder, relative to the app's content root ("PetPhotos:Folder" changes it).</summary>
+    public static readonly string DefaultFolder = Path.Combine("App_Data", "uploads", "mascotas");
 
     private const int HeaderLength = 12;
 
-    private string PhysicalFolder => Path.Combine(webRootPath, "uploads", "mascotas");
+    public string PhysicalFolder { get; } = folder;
+
+    /// <summary>The only file names this storage creates: a GUID without dashes plus ".webp".</summary>
+    [System.Text.RegularExpressions.GeneratedRegex(@"^[0-9a-f]{32}\.webp$")]
+    private static partial System.Text.RegularExpressions.Regex StoredName();
+
+    public static bool IsStoredName(string? fileName) => fileName is not null && StoredName().IsMatch(fileName);
 
     public Result<string> Validate(IFormFile file)
     {
@@ -92,7 +113,7 @@ public class PetPhotoStorage(string webRootPath) : IPetPhotoStorage
         }
 
         var fileName = photoPath[WebFolder.Length..];
-        if (fileName.Length == 0 || fileName != Path.GetFileName(fileName))
+        if (!IsStoredName(fileName))
         {
             return; // no sub-folders or "..": only files this storage created
         }
@@ -105,6 +126,50 @@ public class PetPhotoStorage(string webRootPath) : IPetPhotoStorage
         {
             // A missing or locked file must not break saving the pet.
         }
+    }
+
+    public string? Find(string fileName)
+    {
+        if (!IsStoredName(fileName))
+        {
+            return null;
+        }
+
+        var path = Path.Combine(PhysicalFolder, fileName);
+        return File.Exists(path) ? path : null;
+    }
+
+    /// <summary>
+    /// Moves photos saved by older versions in the public folder (wwwroot/uploads/mascotas) to the
+    /// private one. Their PhotoPath values are rewritten by the database setup.
+    /// </summary>
+    public int MoveLegacyPhotos(string legacyFolder)
+    {
+        if (!Directory.Exists(legacyFolder))
+        {
+            return 0;
+        }
+
+        var moved = 0;
+        foreach (var file in Directory.EnumerateFiles(legacyFolder))
+        {
+            var name = Path.GetFileName(file);
+            if (!IsStoredName(name)) continue;
+
+            Directory.CreateDirectory(PhysicalFolder);
+            var target = Path.Combine(PhysicalFolder, name);
+            try
+            {
+                if (File.Exists(target)) File.Delete(file);
+                else File.Move(file, target);
+                moved++;
+            }
+            catch (IOException)
+            {
+                // best effort: a locked file stays where it is
+            }
+        }
+        return moved;
     }
 
     /// <summary>".jpg", ".png" or ".webp" from the first bytes of the file; null for anything else.</summary>

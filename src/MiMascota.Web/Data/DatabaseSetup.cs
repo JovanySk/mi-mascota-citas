@@ -43,6 +43,7 @@ public static class DatabaseSetup
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
         var db = services.GetRequiredService<AppDbContext>();
+        var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DatabaseSetup));
 
         if (db.Database.IsSqlite())
         {
@@ -54,6 +55,9 @@ public static class DatabaseSetup
             await db.Database.MigrateAsync();
         }
 
+        // Roles, demo staff (Development only) and the first admin from configuration.
+        await StaffSeeder.SeedAsync(services, app.Environment, app.Configuration, logger);
+
         if (app.Configuration.GetValue("Database:SeedDemoData", true))
         {
             var clinic = services.GetRequiredService<IOptions<ClinicOptions>>().Value;
@@ -64,7 +68,7 @@ public static class DatabaseSetup
 
     /// <summary>
     /// EnsureCreated never changes an existing SQLite file, so a local mimascota.db created
-    /// by an older version gets the newer columns and tables here (SQL Server uses migrations).
+    /// by an older version gets the newer columns, tables and indexes here (SQL Server uses migrations).
     /// </summary>
     private static async Task AddMissingSqliteSchemaAsync(AppDbContext db)
     {
@@ -77,19 +81,38 @@ public static class DatabaseSetup
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Pets\" ADD COLUMN \"PhotoPath\" TEXT NULL");
         }
 
-        // Same table that EnsureCreated builds for a new database (messages from the "Contacto" page).
-        await db.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE IF NOT EXISTS "ContactMessages" (
-                "Id" INTEGER NOT NULL CONSTRAINT "PK_ContactMessages" PRIMARY KEY AUTOINCREMENT,
-                "Name" TEXT NOT NULL,
-                "Contact" TEXT NOT NULL,
-                "Message" TEXT NOT NULL,
-                "CreatedAt" TEXT NOT NULL,
-                "IsRead" INTEGER NOT NULL
-            )
-            """);
+        // Every table and index of the current model that the file is missing (e.g. ContactMessages
+        // or the Identity tables AspNetUsers, AspNetRoles...), with the same SQL EnsureCreated uses.
+        foreach (var statement in CreateIfMissingStatements(db.Database.GenerateCreateScript()))
+        {
+            await db.Database.ExecuteSqlRawAsync(statement);
+        }
+
+        // Pet photos used to be public files under /uploads/mascotas; now they are served to staff only.
         await db.Database.ExecuteSqlRawAsync(
-            "CREATE INDEX IF NOT EXISTS \"IX_ContactMessages_CreatedAt\" ON \"ContactMessages\" (\"CreatedAt\")");
+            "UPDATE \"Pets\" SET \"PhotoPath\" = '/fotos/mascotas/' || substr(\"PhotoPath\", 19) WHERE \"PhotoPath\" LIKE '/uploads/mascotas/%'");
+    }
+
+    /// <summary>The CREATE TABLE / CREATE INDEX statements of a SQLite create script, made idempotent.</summary>
+    public static IEnumerable<string> CreateIfMissingStatements(string createScript)
+    {
+        var statements = System.Text.RegularExpressions.Regex.Split(createScript, @";\s*(?:\r?\n|$)");
+        foreach (var raw in statements)
+        {
+            var statement = raw.Trim();
+            if (statement.StartsWith("CREATE TABLE ", StringComparison.Ordinal))
+            {
+                yield return "CREATE TABLE IF NOT EXISTS " + statement["CREATE TABLE ".Length..];
+            }
+            else if (statement.StartsWith("CREATE UNIQUE INDEX ", StringComparison.Ordinal))
+            {
+                yield return "CREATE UNIQUE INDEX IF NOT EXISTS " + statement["CREATE UNIQUE INDEX ".Length..];
+            }
+            else if (statement.StartsWith("CREATE INDEX ", StringComparison.Ordinal))
+            {
+                yield return "CREATE INDEX IF NOT EXISTS " + statement["CREATE INDEX ".Length..];
+            }
+        }
     }
 
     private static bool UsesSqlite(IConfiguration configuration) =>
