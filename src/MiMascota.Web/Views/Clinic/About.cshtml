@@ -1,0 +1,61 @@
+@using Microsoft.Extensions.Options
+@using MiMascota.Web.Options
+@inject IOptions<ClinicOptions> ClinicOptions
+@{
+    ViewData["Title"] = "Sobre nosotros";
+
+    (string Icon, string Title, string Text)[] values =
+    [
+        ("bi-heart-pulse", "Paciencia primero", "Cada consulta empieza por calmar a la mascota. Si hay que ir despacio, vamos despacio."),
+        ("bi-chat-heart", "Hablamos claro", "Te explicamos qué tiene tu mascota, qué opciones hay y cuánto cuesta antes de hacer nada."),
+        ("bi-stars", "Todas las especies", "Perros y gatos, pero también cuyos, hámsters, conejos, aves, hurones, tortugas e iguanas."),
+        ("bi-calendar2-check", "Tu tiempo cuenta", "Citas con hora fija y sin empalmes: llegas, te atendemos y regresas a tu día.")
+    ];
+}
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">La clínica</span>
+        <h1 class="page-title">Sobre nosotros</h1>
+        <p class="page-sub">Una clínica pequeña en el centro de Tantoyuca, hecha para que tu mascota se sienta en casa.</p>
+        <div class="page-actions">
+            <a class="mm-btn mm-btn-primary" asp-controller="Appointments" asp-action="Create">+ Agendar una cita</a>
+            <a class="mm-btn mm-btn-ghost" asp-action="Directions">Cómo llegar</a>
+        </div>
+    </div>
+    <span class="page-giant" aria-hidden="true">familia</span>
+    <img class="page-pet page-pet-pacientes" src="~/img/mascotas/pacientes.webp" alt="" width="1021" height="776" />
+</header>
+
+<section class="clinic-split" aria-labelledby="story-title">
+    <div class="mm-card clinic-card">
+        <h2 id="story-title" class="clinic-title">Nuestra historia</h2>
+        <p>Mi Mascota nació como un consultorio de una sola sala en el centro de Tantoyuca, Veracruz. Los vecinos llegaban con sus perros y sus gatos, pero también con el cuyo de los niños, el conejo de la abuela o la tortuga que nadie sabía cómo cuidar. Así aprendimos a atender a toda la familia.</p>
+        <p>Seguimos siendo una clínica pequeña, y nos gusta así: conocemos a nuestros pacientes por su nombre, recordamos sus vacunas y sabemos quién se pone nervioso en la báscula. Para que nadie espere de más, la agenda se organiza en horarios de @ClinicOptions.Value.SlotMinutes minutos y cada servicio ocupa exactamente el tiempo que necesita.</p>
+        <p class="mb-0">Hoy ofrecemos consulta general, vacunación, baño y estética, corte de uñas, esterilización y consulta para mascotas exóticas.</p>
+    </div>
+    <div class="mm-card clinic-card clinic-card-accent">
+        <h2 class="clinic-title">En pocas palabras</h2>
+        <ul class="fact-list">
+            <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <a asp-action="Directions">Centro, Tantoyuca, Veracruz</a></li>
+            <li><i class="bi bi-house-heart-fill" aria-hidden="true"></i> Una sala de consulta, cero empalmes</li>
+            <li><i class="bi bi-people-fill" aria-hidden="true"></i> Perros, gatos y exóticos</li>
+            <li><i class="bi bi-clock-fill" aria-hidden="true"></i> <a asp-action="Hours">@ClinicOptions.Value.OpenDaysLabel() · @ClinicOptions.Value.HoursLabel()</a></li>
+        </ul>
+    </div>
+</section>
+
+<section class="values" aria-labelledby="values-title">
+    <h2 id="values-title" class="section-title">Lo que nos importa</h2>
+    <ul class="card-grid values-grid">
+        @foreach (var value in values)
+        {
+            <li class="mm-card value-card">
+                <span class="service-icon"><i class="bi @value.Icon" aria-hidden="true"></i></span>
+                <h3 class="card-name">@value.Title</h3>
+                <p class="mb-0">@value.Text</p>
+            </li>
+        }
+    </ul>
+</section>
+
+<partial name="_Team" />

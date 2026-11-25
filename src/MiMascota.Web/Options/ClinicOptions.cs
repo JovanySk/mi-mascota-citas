@@ -16,6 +16,9 @@ public class ClinicOptions
 
     /// <summary>Days the clinic is closed (configured in appsettings.json, e.g. ["Sunday"]).</summary>
     public List<DayOfWeek> ClosedDays { get; set; } = [];
+
+    /// <summary>IANA id of the clinic's time zone, used for "Abierto ahora / Cerrado".</summary>
+    public string TimeZoneId { get; set; } = "America/Mexico_City";
 }
 
 /// <summary>Short Spanish labels for the opening hours, used by the landing page and the footer.</summary>

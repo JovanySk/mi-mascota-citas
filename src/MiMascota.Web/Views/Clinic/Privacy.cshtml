@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Aviso de privacidad";
+}
+<header class="page-head page-head-compact">
+    <div class="page-head-text">
+        <span class="eyebrow">Ayuda</span>
+        <h1 class="page-title">Aviso de privacidad</h1>
+        <p class="page-sub">Qué datos guardamos, para qué los usamos y cómo puedes pedir que los cambiemos o borremos.</p>
+    </div>
+    <span class="page-giant" aria-hidden="true">privado</span>
+    <img class="page-pet page-pet-tortuga" src="~/img/mascotas/tortuga.webp" alt="" width="1000" height="627" />
+</header>
+
+<article class="mm-card legal-card">
+    <p class="legal-updated">Última actualización: noviembre de 2026</p>
+
+    <h2>Quién es responsable de tus datos</h2>
+    <p>La Clínica Veterinaria Mi Mascota, ubicada en el centro de Tantoyuca, Veracruz, es responsable del uso y cuidado de los datos personales que nos das. Este aviso sigue el espíritu de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, explicado en lenguaje sencillo.</p>
+
+    <h2>Qué datos recabamos</h2>
+    <ul>
+        <li><strong>Del dueño:</strong> nombre, teléfono y, si nos lo das, correo electrónico.</li>
+        <li><strong>De la mascota:</strong> nombre, especie, raza, foto (opcional), citas agendadas y notas de la consulta.</li>
+        <li><strong>Del formulario de contacto:</strong> tu nombre, el teléfono o correo que escribas y tu mensaje.</li>
+    </ul>
+    <p>No te pedimos datos sensibles ni datos bancarios a través de este sitio.</p>
+
+    <h2>Para qué los usamos</h2>
+    <ul>
+        <li>Agendar, confirmar, cambiar o cancelar las citas de tu mascota.</li>
+        <li>Avisarte de cambios en tu cita y responder tus mensajes.</li>
+        <li>Llevar el historial de atención de tu mascota en la clínica.</li>
+    </ul>
+    <p>No vendemos ni compartimos tus datos con terceros para publicidad. Solo los compartiríamos si una autoridad competente lo pide conforme a la ley.</p>
+
+    <h2>Fotos de tu mascota</h2>
+    <p>Cuando subes una foto, el sistema la vuelve a guardar desde cero en formato WebP y <strong>elimina sus metadatos</strong> (EXIF), incluida la ubicación GPS que muchos celulares guardan en la imagen. El archivo recibe un nombre aleatorio y se borra si cambias o quitas la foto, o si se elimina el registro de la mascota.</p>
+
+    <h2>Tus derechos ARCO</h2>
+    <p>Puedes pedirnos <strong>Acceder</strong> a tus datos, <strong>Rectificarlos</strong> si están mal, <strong>Cancelarlos</strong> (que los borremos) u <strong>Oponerte</strong> a que los usemos para algún fin. Para hacerlo, envíanos tu solicitud desde la página de <a asp-action="Contact">Contacto</a> indicando tu nombre, el dato o la mascota de que se trata y qué quieres que hagamos. Te responderemos por el mismo medio.</p>
+    <p>Ten en cuenta que, si pides borrar tus datos, no podremos seguir agendando citas a tu nombre.</p>
+
+    <h2>Cambios a este aviso</h2>
+    <p>Si cambiamos la forma en que usamos tus datos, actualizaremos este aviso y la fecha de arriba.</p>
+
+    <p class="legal-note mb-0">Este aviso es informativo y está escrito para que se entienda fácil. Si tienes cualquier duda, <a asp-action="Contact">escríbenos</a>.</p>
+</article>

@@ -1,0 +1,70 @@
+@using MiMascota.Web.Options
+@model ClinicOptions
+@{
+    ViewData["Title"] = "Preguntas frecuentes";
+    var hours = $"{Model.OpenDaysLabel()}, de {Model.HoursLabel()}";
+    var lastStart = Model.ClosingTime.AddMinutes(-Model.SlotMinutes).ToString("H:mm");
+    var spanish = System.Globalization.CultureInfo.GetCultureInfo("es-MX");
+    var closedDays = Model.ClosedDays.Count == 0
+        ? null
+        : string.Join(" y ", Model.ClosedDays.Select(d => spanish.DateTimeFormat.GetDayName(d) + (spanish.DateTimeFormat.GetDayName(d).EndsWith('s') ? "" : "s")));
+
+    var faqs = new (string Question, string AnswerHtml)[]
+    {
+        ("¿Cuál es el horario de la clínica?",
+            $"Atendemos {hours}." + (closedDays is null ? "" : $" Los {closedDays} la clínica está cerrada y la agenda no ofrece horarios.") +
+            " En la página de <a href=\"/clinica/horarios\">Horarios</a> puedes ver si estamos abiertos en este momento."),
+        ("¿Cada cuánto hay horarios para una cita?",
+            $"La agenda trabaja en bloques de {Model.SlotMinutes} minutos: las citas empiezan a las {Model.OpeningTime:H:mm}, {Model.OpeningTime.AddMinutes(Model.SlotMinutes):H:mm}, {Model.OpeningTime.AddMinutes(2 * Model.SlotMinutes):H:mm} y así sucesivamente. " +
+            $"Cada servicio dura lo que necesita (por ejemplo, el baño y estética ocupa 60 minutos) y solo se ofrece un horario si el servicio completo termina antes del cierre: un servicio de {Model.SlotMinutes} minutos puede empezar a las {lastStart} como último turno."),
+        ("¿Pueden darle mi horario a otra persona?",
+            "No. Tenemos una sola sala de consulta y el sistema no permite citas empalmadas: antes de guardar una cita revisa otra vez que el horario siga libre. " +
+            "Si alguien lo tomó un momento antes, te mostramos con qué cita se cruza para que elijas otro. Las citas seguidas (una termina a las 10:00 y otra empieza a las 10:00) sí se permiten."),
+        ("¿Qué significa el estado de mi cita?",
+            "Toda cita nueva queda como <strong>Pendiente</strong>. Cuando el equipo la revisa pasa a <strong>Confirmada</strong>, y después de la consulta se marca como <strong>Atendida</strong>. " +
+            "Una cita pendiente o confirmada también puede quedar <strong>Cancelada</strong>. Atendida y Cancelada son estados finales: ya no cambian. Una cita cuya hora ya pasó no se puede confirmar."),
+        ("¿Cómo cancelo o cambio una cita?",
+            "Escríbenos desde la página de <a href=\"/contacto\">Contacto</a> o avísanos en la clínica, de preferencia con un día de anticipación. " +
+            "El equipo marca la cita como Cancelada y ese horario vuelve a quedar libre para otra mascota. Para cambiarla, se cancela la cita y se agenda una nueva en el horario que prefieras."),
+        ("¿Atienden mascotas exóticas?",
+            "Sí. Además de perros y gatos atendemos cuyos, hámsters, conejos, aves (cotorros, pericos), hurones, tortugas e iguanas. " +
+            "Para ellos está la <strong>Consulta exóticos</strong>. Si tu mascota no aparece en la lista de especies, elige «Otro» y escribe qué animal es."),
+        ("¿Para qué sirve la foto de mi mascota y qué pasa con ella?",
+            "La foto ayuda al equipo a reconocer a tu mascota en la agenda. Aceptamos JPG, PNG o WebP de hasta 5 MB. " +
+            "Al subirla, el sistema vuelve a guardar la imagen desde cero y <strong>elimina sus metadatos</strong> (EXIF), incluida la ubicación GPS que guardan muchos celulares. " +
+            "Si cambias o quitas la foto, o se elimina la mascota, el archivo anterior se borra."),
+        ("¿Puedo agendar para hoy mismo?",
+            "Sí, siempre que quede un horario libre que todavía no haya empezado. La agenda no ofrece fechas pasadas ni horarios de hoy que ya comenzaron."),
+    };
+}
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">Ayuda</span>
+        <h1 class="page-title">Preguntas frecuentes</h1>
+        <p class="page-sub">Cómo funciona la agenda, los estados de las citas y lo que pasa con los datos de tu mascota.</p>
+        <div class="page-actions">
+            <a class="mm-btn mm-btn-ghost" asp-action="Contact">¿Otra duda? Escríbenos</a>
+        </div>
+    </div>
+    <span class="page-giant" aria-hidden="true">dudas</span>
+    <img class="page-pet page-pet-hamster" src="~/img/mascotas/hamster.webp" alt="" width="519" height="726" />
+</header>
+
+<div class="accordion mm-accordion" id="faq">
+    @for (var i = 0; i < faqs.Length; i++)
+    {
+        var (question, answer) = faqs[i];
+        var first = i == 0;
+        <div class="accordion-item mm-card">
+            <h2 class="accordion-header" id="faq-q@(i)">
+                <button class="accordion-button @(first ? null : "collapsed")" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#faq-a@(i)" aria-expanded="@(first ? "true" : "false")" aria-controls="faq-a@(i)">
+                    @question
+                </button>
+            </h2>
+            <div id="faq-a@(i)" class="accordion-collapse collapse @(first ? "show" : null)" aria-labelledby="faq-q@(i)" data-bs-parent="#faq">
+                <div class="accordion-body">@Html.Raw(answer)</div>
+            </div>
+        </div>
+    }
+</div>

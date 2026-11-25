@@ -1,0 +1,68 @@
+@model IReadOnlyList<DayHours>
+@{
+    ViewData["Title"] = "Horarios";
+    var status = (OpenStatus)ViewData["Status"]!;
+    var slotMinutes = (int)ViewData["SlotMinutes"]!;
+    var openDay = Model.FirstOrDefault(d => !d.IsClosed);
+    var slotsPerDay = openDay?.Slots(slotMinutes) ?? 0;
+    TimeOnly? lastStart = openDay?.Closing.AddMinutes(-slotMinutes);
+}
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">La clínica</span>
+        <h1 class="page-title">Horarios</h1>
+        <p class="page-sub">Atendemos con cita en horarios de @slotMinutes minutos. Hora del centro de México.</p>
+        <div class="page-actions">
+            <partial name="_OpenBadge" model="status" />
+            <a class="mm-btn mm-btn-primary" asp-controller="Appointments" asp-action="Create">+ Agendar una cita</a>
+        </div>
+    </div>
+    <span class="page-giant" aria-hidden="true">horario</span>
+    <img class="page-pet page-pet-vet" src="~/img/mascotas/vet-gato.webp" alt="" width="549" height="900" />
+</header>
+
+<div class="clinic-split">
+    <section class="mm-card clinic-card" aria-labelledby="week-title">
+        <h2 id="week-title" class="clinic-title">Semana de atención</h2>
+        <table class="table week-table mb-0">
+            <caption class="visually-hidden">Horario de la clínica por día</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Día</th>
+                    <th scope="col">Horario</th>
+                    <th scope="col" class="text-end">Citas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var day in Model)
+                {
+                    <tr class="@(day.IsToday ? "is-today" : null) @(day.IsClosed ? "is-closed" : null)" aria-current="@(day.IsToday ? "date" : null)">
+                        <th scope="row">
+                            @day.Name
+                            @if (day.IsToday)
+                            {
+                                <span class="today-chip">hoy</span>
+                            }
+                        </th>
+                        <td>@(day.IsClosed ? "Cerrado" : $"{day.Opening:H:mm} – {day.Closing:H:mm}")</td>
+                        <td class="text-end">@(day.IsClosed ? "—" : $"{day.Slots(slotMinutes)} horarios")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    <aside class="mm-card clinic-card clinic-card-accent" aria-labelledby="rules-title">
+        <h2 id="rules-title" class="clinic-title">Cómo funciona la agenda</h2>
+        <ul class="fact-list">
+            <li><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> <span>Las citas empiezan cada @slotMinutes minutos: @slotsPerDay horarios por día.</span></li>
+            @if (lastStart is not null)
+            {
+                <li><i class="bi bi-hourglass-split" aria-hidden="true"></i> <span>Cada servicio debe terminar antes del cierre: uno de @slotMinutes minutos puede empezar como último turno a las @lastStart.Value.ToString("H:mm").</span></li>
+            }
+            <li><i class="bi bi-shield-check" aria-hidden="true"></i> <span>Una sola sala de consulta: dos citas nunca se empalman.</span></li>
+            <li><i class="bi bi-arrow-repeat" aria-hidden="true"></i> <span>Si se cancela una cita, su horario vuelve a quedar libre.</span></li>
+        </ul>
+        <p class="clinic-note mt-3 mb-0">«Abierto / Cerrado» se calcula con la hora de la clínica: @status.ClinicNow.ToString("dddd d 'de' MMMM, H:mm") h.</p>
+    </aside>
+</div>

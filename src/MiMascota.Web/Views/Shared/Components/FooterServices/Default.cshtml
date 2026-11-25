@@ -1,0 +1,12 @@
+@model IReadOnlyList<MiMascota.Web.ViewComponents.FooterServiceLink>
+@foreach (var link in Model)
+{
+    if (link.ServiceId is int id)
+    {
+        <a asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@id">@link.Label</a>
+    }
+    else
+    {
+        <a asp-controller="Services" asp-action="Index">@link.Label</a>
+    }
+}

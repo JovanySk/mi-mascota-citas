@@ -1,0 +1,6 @@
+@model OpenStatus
+@* "Abierto ahora / Cerrado", computed on the server in the clinic's time zone. *@
+<span class="open-badge @(Model.IsOpen ? "is-open" : "is-closed")">
+    <strong>@Model.Label</strong>
+    <span>@Model.Detail</span>
+</span>

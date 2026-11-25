@@ -948,6 +948,134 @@ ul.family-row {
 .mm-modal .form-label { font-weight: 700; font-size: .92rem; }
 .modal-backdrop.show { opacity: .45; }
 
+/* ==========================================================================
+   Clinic info pages (about, hours, directions, help, contact, inbox)
+   ========================================================================== */
+
+.page-pet-frenchie { height: 220px; }
+.page-pet-tortuga { height: 150px; right: 28px; }
+.page-pet-salchicha { height: 150px; right: 24px; }
+.page-pet-perico { height: 190px; }
+.page-head-compact .page-pet-tortuga, .page-head-compact .page-pet-salchicha { height: 130px; }
+
+.clinic-split {
+    display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 24px; align-items: start; margin-bottom: 28px;
+}
+.clinic-card { padding: 30px 32px; font-size: 15px; line-height: 1.65; }
+.clinic-card-accent { background: var(--mm-turquoise-soft); box-shadow: none; }
+.clinic-title { font-size: 28px; line-height: 1.05; margin: 0 0 14px; }
+.clinic-note { font-size: 13px; color: var(--mm-muted); line-height: 1.5; }
+.clinic-card a, .legal-card a, .accordion-body a, .clinic-note a { color: var(--mm-turquoise-deep); font-weight: 700; }
+
+.fact-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-style: normal; font-weight: 600; font-size: 14px; }
+.fact-list li, .fact-list > span { display: flex; gap: 10px; align-items: baseline; }
+.fact-list .bi { color: var(--mm-turquoise-deep); flex-shrink: 0; }
+.fact-list .is-closed, .fact-list .is-closed .bi { color: var(--mm-muted); }
+
+.values { margin: 8px 0 0; }
+.values .section-title { font-size: 44px; }
+.values-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-top: 22px; }
+.value-card { padding: 24px; font-size: 14px; line-height: 1.55; }
+.value-card .card-name { margin-bottom: 8px; }
+.page-main .team { padding: 56px 0 12px; }
+.page-main .team .mm-container { padding-inline: 0; }
+
+/* "Abierto ahora / Cerrado" */
+.open-badge {
+    display: inline-flex; align-items: center; flex-wrap: wrap; gap: .35rem .6rem;
+    border-radius: 999px; padding: .45rem 1rem .45rem .85rem;
+    font-size: .88rem; font-weight: 600;
+}
+.open-badge strong { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; }
+.open-badge strong::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.open-badge.is-open { background: var(--mm-attended-bg); color: var(--mm-attended); }
+.open-badge.is-open strong::before { box-shadow: 0 0 0 0 rgba(47, 143, 78, .5); animation: open-pulse 2s ease-out infinite; }
+.open-badge.is-closed { background: var(--mm-cancelled-bg); color: var(--mm-cancelled); }
+.open-badge span { color: var(--mm-ink); font-weight: 500; }
+@keyframes open-pulse { to { box-shadow: 0 0 0 8px rgba(47, 143, 78, 0); } }
+
+.week-table { --bs-table-bg: transparent; font-size: 15px; }
+.week-table th, .week-table td { padding: .85rem .6rem; border-color: var(--mm-line); vertical-align: middle; }
+.week-table thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--mm-muted); font-weight: 700; }
+.week-table tbody th { font-weight: 700; }
+.week-table td { white-space: nowrap; }
+.clinic-card .open-badge { border-radius: 16px; }
+.week-table tr.is-closed td, .week-table tr.is-closed th { color: var(--mm-muted); font-weight: 500; }
+.week-table tr.is-today > * { background: var(--mm-turquoise-soft); }
+.week-table tr.is-today > :first-child { border-radius: 14px 0 0 14px; }
+.week-table tr.is-today > :last-child { border-radius: 0 14px 14px 0; }
+.today-chip {
+    display: inline-block; margin-left: .4rem; background: var(--mm-turquoise-deep); color: #fff;
+    border-radius: 999px; padding: .1rem .55rem; font-size: .72rem; font-weight: 700; vertical-align: middle;
+}
+
+.map-card { padding: 12px; overflow: hidden; }
+.map-frame { display: block; width: 100%; height: 440px; border: 0; border-radius: 20px; background: var(--mm-bg); }
+.map-credit { font-size: 12px; color: var(--mm-muted); margin: 10px 8px 2px; }
+.map-credit a { color: var(--mm-turquoise-deep); font-weight: 600; }
+
+.mm-accordion { display: flex; flex-direction: column; gap: 12px; max-width: 58rem; margin-bottom: 28px; }
+.mm-accordion .accordion-item { border: 0; border-radius: 22px !important; overflow: hidden; }
+.mm-accordion .accordion-button {
+    font-family: var(--font-display); font-weight: 800; font-size: 21px; line-height: 1.2;
+    color: var(--mm-ink); background: #fff; padding: 20px 26px; box-shadow: none;
+}
+.mm-accordion .accordion-button:not(.collapsed) { color: var(--mm-turquoise-deep); background: #fff; }
+.mm-accordion .accordion-button:focus-visible { box-shadow: inset 0 0 0 3px rgba(18, 206, 214, .45); }
+.mm-accordion .accordion-button::after {
+    background-image: none; content: "+"; transform: none;
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background-color: var(--mm-turquoise-soft); color: var(--mm-turquoise-deep);
+    font-family: var(--font-body); font-size: 22px; font-weight: 700; line-height: 1;
+}
+.mm-accordion .accordion-button:not(.collapsed)::after { content: "\2212"; background-image: none; background-color: var(--mm-turquoise); color: #fff; transform: none; }
+.mm-accordion .accordion-body { padding: 0 26px 22px; font-size: 15px; line-height: 1.65; }
+
+.legal-card { padding: 36px 40px; max-width: 58rem; margin-bottom: 28px; font-size: 15px; line-height: 1.7; }
+.legal-card h2 { font-size: 26px; margin: 28px 0 8px; }
+.legal-card h2:first-of-type { margin-top: 8px; }
+.legal-card ul { padding-left: 1.2rem; }
+.legal-card li { margin-bottom: .35rem; }
+.legal-card li::marker { color: var(--mm-turquoise-deep); }
+.legal-updated { display: inline-block; background: var(--mm-bg); border-radius: 999px; padding: .25rem .8rem; font-size: 13px; font-weight: 600; color: var(--mm-muted); }
+.legal-note { margin-top: 28px; padding-top: 18px; border-top: 2px dashed var(--mm-line); color: var(--mm-muted); }
+
+.contact-form .mm-btn .bi, .page-actions .mm-btn .bi { margin-right: .25rem; }
+
+.unread-count { color: var(--mm-turquoise-deep); }
+.message-row { padding: 20px 24px; border-left: 6px solid transparent; }
+.message-row.is-unread { border-left-color: var(--mm-turquoise); }
+.message-row.is-read { opacity: .85; }
+.message-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.message-row .card-meta .bi { color: var(--mm-turquoise-deep); }
+.message-body { margin: 12px 0 0; white-space: pre-line; font-size: 15px; }
+.message-row .card-actions { padding-top: 14px; }
+
+/* Footer: real links in the contact list, and social icons without an account yet */
+.footer-contact a { color: inherit; text-decoration: none; }
+.footer-contact a:hover { color: var(--mm-turquoise); text-decoration: underline; }
+.footer-social .social-soon {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: default;
+    background: rgba(201, 211, 214, .14); color: var(--mm-footer-link);
+}
+
+@media (max-width: 991.98px) {
+    .clinic-split { grid-template-columns: 1fr; }
+    .map-frame { height: 340px; }
+    .legal-card { padding: 26px 22px; }
+    .clinic-card { padding: 24px 22px; }
+    .mm-accordion .accordion-button { font-size: 18px; padding: 18px 20px; }
+    .mm-accordion .accordion-body { padding: 0 20px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .open-badge.is-open strong::before { animation: none; }
+}
+
 @media (max-width: 575.98px) {
     .species-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .photo-field { gap: 14px; }

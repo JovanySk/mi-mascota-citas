@@ -1,0 +1,62 @@
+@model ContactMessagesViewModel
+@{
+    ViewData["Title"] = "Mensajes";
+}
+<header class="page-head page-head-compact">
+    <div class="page-head-text">
+        <span class="eyebrow">Personal</span>
+        <h1 class="page-title">Mensajes</h1>
+        <p class="page-sub">
+            Lo que llega desde la página de Contacto, del más reciente al más antiguo.
+            @if (Model.UnreadCount > 0)
+            {
+                <strong class="unread-count">@Model.UnreadCount sin leer.</strong>
+            }
+        </p>
+    </div>
+    <span class="page-giant" aria-hidden="true">buzón</span>
+    <img class="page-pet page-pet-perico" src="~/img/mascotas/perico.webp" alt="" width="799" height="900" />
+</header>
+
+@if (Model.Messages.Count == 0)
+{
+    <div class="empty-state">
+        <img src="~/img/mascotas/avatar/perico.webp" alt="" width="96" height="96" />
+        <div>
+            <strong>No hay mensajes todavía.</strong>
+            <p class="mb-0">Cuando alguien escriba desde <a asp-action="Contact">Contacto</a>, aparecerá aquí.</p>
+        </div>
+    </div>
+}
+else
+{
+    <ul class="row-list">
+        @foreach (var message in Model.Messages)
+        {
+            <li class="mm-card message-row @(message.IsRead ? "is-read" : "is-unread")">
+                <div class="message-head">
+                    <h2 class="card-name">@message.Name</h2>
+                    @if (!message.IsRead)
+                    {
+                        <span class="mm-badge is-confirmed">Nuevo</span>
+                    }
+                    else
+                    {
+                        <span class="mm-badge is-attended">Leído</span>
+                    }
+                </div>
+                <div class="card-meta">
+                    <span><i class="bi @(message.Contact.Contains('@') ? "bi-envelope" : "bi-telephone")" aria-hidden="true"></i> @message.Contact</span>
+                    <span><i class="bi bi-clock" aria-hidden="true"></i> @message.CreatedAt.ToString("ddd d 'de' MMM yyyy, H:mm")</span>
+                </div>
+                <p class="message-body">@message.Message</p>
+                @if (!message.IsRead)
+                {
+                    <form asp-action="MarkRead" asp-route-id="@message.Id" method="post" class="card-actions">
+                        <button type="submit" class="mm-btn mm-btn-sm mm-btn-primary"><i class="bi bi-check2" aria-hidden="true"></i> Marcar como leído</button>
+                    </form>
+                }
+            </li>
+        }
+    </ul>
+}

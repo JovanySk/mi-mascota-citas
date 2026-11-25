@@ -47,7 +47,7 @@ public static class DatabaseSetup
         if (db.Database.IsSqlite())
         {
             await db.Database.EnsureCreatedAsync();
-            await AddMissingSqliteColumnsAsync(db);
+            await AddMissingSqliteSchemaAsync(db);
         }
         else
         {
@@ -64,9 +64,9 @@ public static class DatabaseSetup
 
     /// <summary>
     /// EnsureCreated never changes an existing SQLite file, so a local mimascota.db created
-    /// before the pet photos existed gets the new column here (SQL Server uses migrations).
+    /// by an older version gets the newer columns and tables here (SQL Server uses migrations).
     /// </summary>
-    private static async Task AddMissingSqliteColumnsAsync(AppDbContext db)
+    private static async Task AddMissingSqliteSchemaAsync(AppDbContext db)
     {
         var hasPhotoColumn = await db.Database
             .SqlQueryRaw<int>("SELECT COUNT(*) AS \"Value\" FROM pragma_table_info('Pets') WHERE name = 'PhotoPath'")
@@ -76,6 +76,20 @@ public static class DatabaseSetup
         {
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Pets\" ADD COLUMN \"PhotoPath\" TEXT NULL");
         }
+
+        // Same table that EnsureCreated builds for a new database (messages from the "Contacto" page).
+        await db.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "ContactMessages" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_ContactMessages" PRIMARY KEY AUTOINCREMENT,
+                "Name" TEXT NOT NULL,
+                "Contact" TEXT NOT NULL,
+                "Message" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                "IsRead" INTEGER NOT NULL
+            )
+            """);
+        await db.Database.ExecuteSqlRawAsync(
+            "CREATE INDEX IF NOT EXISTS \"IX_ContactMessages_CreatedAt\" ON \"ContactMessages\" (\"CreatedAt\")");
     }
 
     private static bool UsesSqlite(IConfiguration configuration) =>

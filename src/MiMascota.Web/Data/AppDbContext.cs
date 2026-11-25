@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<VetService> VetServices => Set<VetService>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +61,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             // Availability and overlap queries filter by start time.
             entity.HasIndex(a => a.Start);
+        });
+
+        modelBuilder.Entity<ContactMessage>(entity =>
+        {
+            entity.Property(m => m.Name).HasMaxLength(100);
+            entity.Property(m => m.Contact).HasMaxLength(150);
+            entity.Property(m => m.Message).HasMaxLength(1000);
+
+            // The staff inbox lists the newest messages first.
+            entity.HasIndex(m => m.CreatedAt);
         });
     }
 }

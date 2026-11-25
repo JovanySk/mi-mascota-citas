@@ -21,6 +21,7 @@ builder.Services.AddClinicDatabase();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IClinicHours, ClinicHours>();
 // Pet photos go to wwwroot/uploads/mascotas ("PetPhotos:WebRootPath" lets the tests use a temp folder).
 builder.Services.AddSingleton<IPetPhotoStorage>(sp => new PetPhotoStorage(
     sp.GetRequiredService<IConfiguration>()["PetPhotos:WebRootPath"]

@@ -1,0 +1,60 @@
+@model IReadOnlyList<DayHours>
+@{
+    ViewData["Title"] = "Cómo llegar";
+    var status = (OpenStatus)ViewData["Status"]!;
+
+    // Center of Tantoyuca (the OpenStreetMap "town" node) and a small box around it for the embedded map.
+    const string lat = "21.3514";
+    const string lon = "-98.2264";
+    const string bbox = "-98.2364,21.3444,-98.2164,21.3584";
+    var mapSrc = $"https://www.openstreetmap.org/export/embed.html?bbox={bbox}&layer=mapnik&marker={lat},{lon}";
+    var osmLink = $"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map=16/{lat}/{lon}";
+    const string googleMaps = "https://www.google.com/maps/search/?api=1&query=Tantoyuca%2C%20Veracruz";
+}
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">La clínica</span>
+        <h1 class="page-title">Cómo llegar</h1>
+        <p class="page-sub">Estamos en el centro de Tantoyuca, Veracruz. Te esperamos con tu mascota.</p>
+        <div class="page-actions">
+            <a class="mm-btn mm-btn-primary" href="@googleMaps" target="_blank" rel="noopener">
+                <i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Abrir en Google Maps
+            </a>
+            <partial name="_OpenBadge" model="status" />
+        </div>
+    </div>
+    <span class="page-giant" aria-hidden="true">ruta</span>
+    <img class="page-pet page-pet-husky" src="~/img/mascotas/husky.webp" alt="" width="495" height="900" />
+</header>
+
+<div class="clinic-split">
+    <section class="mm-card map-card" aria-label="Mapa">
+        <iframe class="map-frame" src="@mapSrc" title="Mapa del centro de Tantoyuca, Veracruz (OpenStreetMap)" loading="lazy"></iframe>
+        <p class="map-credit">
+            Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores de OpenStreetMap</a>
+            · <a href="@osmLink" target="_blank" rel="noopener">Ver mapa más grande</a>
+        </p>
+    </section>
+
+    <aside class="mm-card clinic-card clinic-card-accent" aria-labelledby="address-title">
+        <h2 id="address-title" class="clinic-title">Dirección</h2>
+        <address class="fact-list">
+            <span><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Centro, Tantoyuca, Veracruz</span>
+        </address>
+
+        <h2 class="clinic-title mt-4">Horario</h2>
+        <ul class="fact-list">
+            @foreach (var day in Model)
+            {
+                <li class="@(day.IsClosed ? "is-closed" : null)">
+                    <i class="bi @(day.IsClosed ? "bi-moon-fill" : "bi-clock-fill")" aria-hidden="true"></i>
+                    <span><strong>@day.Name</strong> @(day.IsClosed ? "cerrado" : $"{day.Opening:H:mm}–{day.Closing:H:mm}")</span>
+                </li>
+            }
+        </ul>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <a class="mm-btn mm-btn-sm mm-btn-ghost" asp-action="Hours">Ver horarios</a>
+            <a class="mm-btn mm-btn-sm mm-btn-ghost" asp-action="Contact">Escríbenos</a>
+        </div>
+    </aside>
+</div>

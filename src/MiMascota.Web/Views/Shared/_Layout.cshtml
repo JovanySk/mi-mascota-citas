@@ -6,7 +6,10 @@
     string Active(string name) => controller == name ? "active" : "";
     string? Current(string name) => controller == name ? "page" : null;
     var clinic = ClinicOptions.Value;
-    var isHome = controller == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index";
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var isHome = controller == "Home" && action == "Index";
+    // The team section lives on the home page and on "Sobre nosotros".
+    var teamHref = isHome || (controller == "Clinic" && action == "About") ? "#equipo" : Url.Action("Index", "Home") + "#equipo";
 }
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -71,24 +74,21 @@
                     </a>
                     <p class="footer-desc">Clínica veterinaria para perros, gatos, cuyos, hámsters y conejos.</p>
                     <ul class="footer-contact">
-                        <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Centro, Tantoyuca, Veracruz</li>
-                        <li><i class="bi bi-clock-fill" aria-hidden="true"></i> @clinic.OpenDaysLabel() · @clinic.HoursLabel()</li>
+                        <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Directions">Centro, Tantoyuca, Veracruz</a></li>
+                        <li><i class="bi bi-clock-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Hours">@clinic.OpenDaysLabel() · @clinic.HoursLabel()</a></li>
                         <li><i class="bi bi-whatsapp" aria-hidden="true"></i> Citas por WhatsApp</li>
                     </ul>
                 </div>
                 <nav class="footer-col" aria-label="Clínica">
                     <h2>Clínica</h2>
-                    <a href="/#familia">Sobre nosotros</a>
-                    <a href="/#equipo">Nuestro equipo</a>
-                    <a href="/#agenda">Horarios</a>
-                    <a href="#">Cómo llegar</a>
+                    <a asp-controller="Clinic" asp-action="About">Sobre nosotros</a>
+                    <a href="@teamHref">Nuestro equipo</a>
+                    <a asp-controller="Clinic" asp-action="Hours">Horarios</a>
+                    <a asp-controller="Clinic" asp-action="Directions">Cómo llegar</a>
                 </nav>
                 <nav class="footer-col" aria-label="Servicios">
                     <h2>Servicios</h2>
-                    <a asp-controller="Services" asp-action="Index">Consulta general</a>
-                    <a asp-controller="Services" asp-action="Index">Vacunas</a>
-                    <a asp-controller="Services" asp-action="Index">Baño y estética</a>
-                    <a asp-controller="Services" asp-action="Index">Exóticos</a>
+                    @await Component.InvokeAsync("FooterServices")
                 </nav>
                 <nav class="footer-col" aria-label="Sistema">
                     <h2>Sistema</h2>
@@ -99,18 +99,19 @@
                 </nav>
                 <nav class="footer-col" aria-label="Ayuda">
                     <h2>Ayuda</h2>
-                    <a href="#">Preguntas frecuentes</a>
-                    <a href="#">Términos de uso</a>
-                    <a href="#">Aviso de privacidad</a>
-                    <a href="#">Contacto</a>
+                    <a asp-controller="Clinic" asp-action="Faq">Preguntas frecuentes</a>
+                    <a asp-controller="Clinic" asp-action="Terms">Términos de uso</a>
+                    <a asp-controller="Clinic" asp-action="Privacy">Aviso de privacidad</a>
+                    <a asp-controller="Clinic" asp-action="Contact">Contacto</a>
                 </nav>
             </div>
 
             <div class="footer-social">
-                <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
-                <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
-                <a href="#" aria-label="TikTok"><i class="bi bi-tiktok" aria-hidden="true"></i></a>
-                <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
+                @* No social accounts yet: the icons stay, but they are not links. *@
+                <span class="social-soon" role="img" aria-label="Facebook (próximamente)" title="Próximamente"><i class="bi bi-facebook" aria-hidden="true"></i></span>
+                <span class="social-soon" role="img" aria-label="Instagram (próximamente)" title="Próximamente"><i class="bi bi-instagram" aria-hidden="true"></i></span>
+                <span class="social-soon" role="img" aria-label="TikTok (próximamente)" title="Próximamente"><i class="bi bi-tiktok" aria-hidden="true"></i></span>
+                <a asp-controller="Clinic" asp-action="Contact" aria-label="Escríbenos (Contacto)" title="Escríbenos"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
             </div>
 
             <div class="footer-bottom">

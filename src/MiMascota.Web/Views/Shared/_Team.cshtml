@@ -1,0 +1,28 @@
+@* "Nuestro equipo": shared by the home page and "Sobre nosotros" (the footer links to #equipo). *@
+@{
+    (string Name, string Role, string Word, string Image)[] team =
+    [
+        ("Dr. Toby", "Medicina general", "vet", "vet-perro"),
+        ("Dra. Nieve", "Especialista en felinos", "gato", "vet-gato"),
+        ("Lupita", "Enfermería y vacunas", "amor", "salchicha-enfermera")
+    ];
+}
+<section class="team" id="equipo" aria-labelledby="team-title">
+    <div class="mm-container">
+        <h2 id="team-title" class="section-title">Nuestro equipo</h2>
+        <p class="section-sub">Profesionales (muy peludos) para cada consulta.</p>
+        <div class="team-grid">
+            @foreach (var member in team)
+            {
+                <article class="team-card team-card-@member.Image">
+                    <span class="team-word" aria-hidden="true">@member.Word</span>
+                    <img src="~/img/mascotas/@(member.Image).webp" alt="" loading="lazy" />
+                    <div class="team-tag">
+                        <h3>@member.Name</h3>
+                        <p>@member.Role</p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
