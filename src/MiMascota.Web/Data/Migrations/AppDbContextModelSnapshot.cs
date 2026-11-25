@@ -109,6 +109,10 @@ namespace MiMascota.Web.Data.Migrations
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("PhotoPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Species")
                         .IsRequired()
                         .HasMaxLength(40)

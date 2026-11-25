@@ -1,0 +1,38 @@
+@model SpeciesPickerModel
+@*
+    Species picker: radio "chips" with each species' avatar (name="Species").
+    "Otro" reveals a text input (name="SpeciesOther") for any other species.
+    Behaviour in wwwroot/js/pet-form.js.
+*@
+@{
+    var selected = Model.Selected?.Trim();
+    var match = SpeciesCatalog.Match(selected);
+    var isOther = !string.IsNullOrEmpty(selected) && match is null;
+    var otherText = isOther && !string.Equals(selected, SpeciesCatalog.Other, StringComparison.OrdinalIgnoreCase) ? selected : null;
+    var current = isOther ? SpeciesCatalog.Other : match;
+}
+<div class="species-picker" role="radiogroup" aria-labelledby="@(Model.IdPrefix)-label" data-species-picker>
+    @for (var i = 0; i < SpeciesCatalog.Options.Count; i++)
+    {
+        var option = SpeciesCatalog.Options[i];
+        var id = $"{Model.IdPrefix}-{i}";
+        <input type="radio" class="btn-check" name="Species" id="@id" value="@option.Value" autocomplete="off"
+               checked="@(option.Value == current)" data-avatar="@(option.Value == SpeciesCatalog.Other ? null : option.Image)"
+               data-val="true" data-val-required="La especie es obligatoria." />
+        <label class="species-chip @(option.Value == SpeciesCatalog.Other ? "is-other" : "")" for="@id">
+            <span class="species-chip-img"><img src="@option.Image" alt="" width="56" height="56" loading="lazy" /></span>
+            <span class="species-chip-text">
+                <strong>@option.Label</strong>
+                @if (option.Hint is not null)
+                {
+                    <small>@option.Hint</small>
+                }
+            </span>
+        </label>
+    }
+</div>
+<div class="species-other mt-2" data-species-other @(current == SpeciesCatalog.Other ? "" : "hidden")>
+    <label class="visually-hidden" for="@(Model.IdPrefix)-other">¿Qué especie es?</label>
+    <input type="text" class="form-control" id="@(Model.IdPrefix)-other" name="SpeciesOther" value="@otherText"
+           maxlength="40" placeholder="¿Qué especie es? (erizo, pez, gallina…)" />
+</div>

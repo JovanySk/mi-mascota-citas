@@ -27,7 +27,7 @@ public static class SeedData
         var diego = new Owner { Name = "Diego Herrera Vázquez", Phone = "22 7890 1234" };
         var paola = new Owner { Name = "Paola Mendoza Reyes", Phone = "55 8901 2345", Email = "paola.mendoza@example.com" };
 
-        // Pets: dogs of several breeds, cats, guinea pigs, hamsters and rabbits.
+        // Pets: dogs of several breeds, cats, guinea pigs, hamsters, rabbits and some exotic patients.
         var toby = new Pet { Name = "Toby", Species = "Perro", Breed = "Jack Russell", Owner = ana };
         var rocky = new Pet { Name = "Rocky", Species = "Perro", Breed = "Bulldog francés", Owner = carlos };
         var firulais = new Pet { Name = "Firulais", Species = "Perro", Breed = "Golden retriever", Owner = maria };
@@ -42,6 +42,11 @@ public static class SeedData
         var bolita = new Pet { Name = "Bolita", Species = "Hámster", Breed = "Hámster ruso", Owner = sofia };
         var copito = new Pet { Name = "Copito", Species = "Conejo", Breed = "Belier", Owner = luis };
         var pelusa = new Pet { Name = "Pelusa", Species = "Conejo", Breed = "Cabeza de león", Owner = paola };
+        var paco = new Pet { Name = "Paco", Species = "Ave", Breed = "Cotorro cabeza amarilla", Owner = carlos };
+        var kiwi = new Pet { Name = "Kiwi", Species = "Ave", Breed = "Perico australiano", Owner = sofia };
+        var manuelita = new Pet { Name = "Manuelita", Species = "Tortuga", Breed = "Tortuga de orejas rojas", Owner = ana };
+        var rex = new Pet { Name = "Rex", Species = "Iguana", Breed = "Iguana verde", Owner = diego };
+        var bandido = new Pet { Name = "Bandido", Species = "Hurón", Breed = "Hurón canela", Owner = luis };
 
         var consulta = new VetService { Name = "Consulta general", DurationMinutes = 30, Price = 350m };
         var vacuna = new VetService { Name = "Vacunación", DurationMinutes = 30, Price = 280m };
@@ -56,7 +61,8 @@ public static class SeedData
         var day2 = NextOpenDay(day1.AddDays(1), clinic);
 
         db.AddRange(maria, carlos, ana, luis, sofia, valeria, diego, paola);
-        db.AddRange(toby, rocky, firulais, kira, frijol, chispa, michi, luna, canela, galleta, nube, bolita, copito, pelusa);
+        db.AddRange(toby, rocky, firulais, kira, frijol, chispa, michi, luna, canela, galleta, nube, bolita, copito, pelusa,
+            paco, kiwi, manuelita, rex, bandido);
         db.AddRange(consulta, vacuna, estetica, cirugia, exoticos, unas);
         db.AddRange(
             // Day 1: every status appears at least once.
@@ -65,14 +71,17 @@ public static class SeedData
             Create(canela, unas, day1, 11, 30, AppointmentStatus.Confirmed, null),
             Create(rocky, consulta, day1, 12, 30, AppointmentStatus.Confirmed, "Control post cirugía."),
             Create(nube, exoticos, day1, 13, 30, AppointmentStatus.Pending, "Come menos semillas que de costumbre."),
+            Create(paco, exoticos, day1, 14, 0, AppointmentStatus.Confirmed, "Se arranca las plumas del pecho."),
             Create(kira, vacuna, day1, 15, 0, AppointmentStatus.Pending, "Refuerzo de séxtuple."),
             Create(michi, vacuna, day1, 16, 0, AppointmentStatus.Cancelled, "La dueña canceló por teléfono."),
             Create(luna, estetica, day1, 17, 0, AppointmentStatus.Confirmed, "Desenredar el pelo del lomo."),
             // Day 2: a lighter agenda, so the quick-booking card shows free and taken slots.
             Create(firulais, estetica, day2, 9, 30, AppointmentStatus.Confirmed, null),
+            Create(rex, exoticos, day2, 11, 0, AppointmentStatus.Pending, "Revisión de piel: no termina de mudar."),
             Create(chispa, vacuna, day2, 12, 0, AppointmentStatus.Pending, "Refuerzo antirrábica."),
             Create(pelusa, exoticos, day2, 13, 0, AppointmentStatus.Cancelled, "Se reagendará la próxima semana."),
             Create(galleta, unas, day2, 14, 30, AppointmentStatus.Confirmed, null),
+            Create(manuelita, exoticos, day2, 15, 30, AppointmentStatus.Confirmed, "Caparazón blando en un costado."),
             Create(frijol, consulta, day2, 16, 0, AppointmentStatus.Pending, "Dolor de espalda al subir escaleras."),
             Create(bolita, exoticos, day2, 17, 0, AppointmentStatus.Pending, null));
 

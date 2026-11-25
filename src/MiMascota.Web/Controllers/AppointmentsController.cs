@@ -117,8 +117,10 @@ public class AppointmentsController(
     {
         var pets = await db.Pets.Include(p => p.Owner).AsNoTracking().OrderBy(p => p.Name).ToListAsync();
         var services = await db.VetServices.AsNoTracking().OrderBy(s => s.Name).ToListAsync();
+        var owners = await db.Owners.AsNoTracking().OrderBy(o => o.Name).ToListAsync();
 
-        model.Pets = pets.Select(p => new SelectListItem($"{p.Name} ({p.Species}) — {p.Owner?.Name}", p.Id.ToString()));
+        model.Pets = pets.Select(p => new PetOption(p.Id, PetLabels.ForSelect(p), PetAvatar.ImageFor(p))).ToList();
+        model.Owners = owners.Select(o => new SelectListItem(o.Name, o.Id.ToString()));
         model.Services = services.Select(s => new SelectListItem($"{s.Name} · {s.DurationMinutes} min · {s.Price:C0}", s.Id.ToString()));
     }
 }

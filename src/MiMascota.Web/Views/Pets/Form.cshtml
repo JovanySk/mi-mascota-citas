@@ -2,7 +2,6 @@
 @{
     var isNew = Model.Id == 0;
     ViewData["Title"] = isNew ? "Nueva mascota" : "Editar mascota";
-    string[] species = ["Perro", "Gato", "Cuyo", "Hámster", "Conejo", "Ave", "Reptil", "Otro"];
 }
 <header class="page-head page-head-compact">
     <div class="page-head-text">
@@ -13,34 +12,36 @@
     <img class="page-pet page-pet-conejo" src="~/img/mascotas/conejo.webp" alt="" width="532" height="726" />
 </header>
 
-<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="mm-card mm-form mm-form-narrow">
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post"
+      enctype="multipart/form-data" class="mm-card mm-form mm-form-mid" data-pet-form>
     <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger"></div>
     <input type="hidden" asp-for="Id" />
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" autofocus />
-        <span asp-validation-for="Name" class="field-error"></span>
+    <div class="mb-4">
+        <partial name="_PhotoField" model='new PhotoFieldModel(Model.PhotoPath, PetAvatar.For(Model), "pet-photo")' />
     </div>
+
     <div class="row g-3 mb-3">
         <div class="col-sm-6">
-            <label asp-for="Species" class="form-label"></label>
-            <input asp-for="Species" class="form-control" list="species-list" />
-            <datalist id="species-list">
-                @foreach (var s in species)
-                {
-                    <option value="@s"></option>
-                }
-            </datalist>
-            <span asp-validation-for="Species" class="field-error"></span>
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" autofocus />
+            <span asp-validation-for="Name" class="field-error"></span>
         </div>
         <div class="col-sm-6">
             <label asp-for="Breed" class="form-label"></label>
-            <input asp-for="Breed" class="form-control" placeholder="opcional" />
+            <input asp-for="Breed" class="form-control" placeholder="opcional (ej. Husky, Persa, Perico australiano)" />
             <span asp-validation-for="Breed" class="field-error"></span>
         </div>
     </div>
+
     <div class="mb-3">
+        <span class="form-label d-block" id="species-label">Especie</span>
+        <partial name="_SpeciesPicker" model='new SpeciesPickerModel(Model.Species, "species")' />
+        <span asp-validation-for="Species" class="field-error"></span>
+        @Html.ValidationMessage("SpeciesOther", new { @class = "field-error" })
+    </div>
+
+    <div class="mb-4">
         <label asp-for="OwnerId" class="form-label"></label>
         <select asp-for="OwnerId" asp-items='@(ViewData["Owners"] as SelectList)' class="form-select">
             <option value="0">Selecciona un dueño…</option>
@@ -56,4 +57,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pet-form.js" asp-append-version="true"></script>
 }

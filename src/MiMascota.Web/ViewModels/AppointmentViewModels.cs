@@ -28,12 +28,20 @@ public class AppointmentFormViewModel
     [StringLength(500, ErrorMessage = "Las notas no pueden tener más de {1} caracteres.")]
     public string? Notes { get; set; }
 
+    /// <summary>Pets for the drop-down, with the avatar shown next to it.</summary>
     [ValidateNever]
-    public IEnumerable<SelectListItem> Pets { get; set; } = [];
+    public IReadOnlyList<PetOption> Pets { get; set; } = [];
+
+    /// <summary>Owners for the "Registrar mascota nueva" modal.</summary>
+    [ValidateNever]
+    public IEnumerable<SelectListItem> Owners { get; set; } = [];
 
     [ValidateNever]
     public IEnumerable<SelectListItem> Services { get; set; } = [];
 }
+
+/// <summary>A pet in the booking form's drop-down.</summary>
+public record PetOption(int Id, string Label, string Avatar);
 
 /// <summary>Appointment list with its filters.</summary>
 public class AppointmentListViewModel

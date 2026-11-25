@@ -5,14 +5,19 @@ using MiMascota.Web.Models;
 namespace MiMascota.Web.ViewModels;
 
 /// <summary>
-/// Picks the illustration used as a pet's round avatar, from its species and breed.
-/// The images live in wwwroot/img/mascotas/avatar.
+/// Picks the image used as a pet's round avatar: the uploaded photo when there is one,
+/// otherwise an illustration chosen from its species and breed (wwwroot/img/mascotas/avatar).
 /// </summary>
 public static class PetAvatar
 {
     private const string Folder = "/img/mascotas/avatar/";
     public const string Fallback = Folder + "perro-pata.webp";
 
+    /// <summary>The pet's photo if it has one, otherwise its illustration.</summary>
+    public static string ImageFor(Pet? pet) =>
+        string.IsNullOrWhiteSpace(pet?.PhotoPath) ? For(pet) : pet.PhotoPath;
+
+    /// <summary>The illustration for the pet's species and breed (ignores the photo).</summary>
     public static string For(Pet? pet) => For(pet?.Species, pet?.Breed);
 
     public static string For(string? species, string? breed)
@@ -22,7 +27,7 @@ public static class PetAvatar
 
         var file = s switch
         {
-            _ when s.StartsWith("perr") || s.StartsWith("can") => b switch
+            _ when s.StartsWith("perr") || s.StartsWith("canin") => b switch
             {
                 _ when b.Contains("husky") => "husky",
                 _ when b.Contains("bulldog") || b.Contains("frances") || b.Contains("pug") => "frenchie-cono",
@@ -35,11 +40,24 @@ public static class PetAvatar
             _ when s.StartsWith("cuy") || s.StartsWith("cobay") => "cuyo",
             _ when s.StartsWith("hamst") => "hamster",
             _ when s.StartsWith("conej") => "conejo",
+            _ when IsBird(s) =>
+                IsParakeet(s) || IsParakeet(b) ? "perico" : "cotorro",
+            _ when s.StartsWith("huron") => "huron",
+            _ when s.StartsWith("tortug") => "tortuga",
+            _ when s.StartsWith("iguan") || s.StartsWith("reptil") || s.StartsWith("lagart") || s.StartsWith("gecko") => "iguana",
             _ => null
         };
 
         return file is null ? Fallback : Folder + file + ".webp";
     }
+
+    private static bool IsBird(string s) =>
+        s == "ave" || s == "aves" || s.StartsWith("ave ") || s.StartsWith("pajar")
+        || s.StartsWith("cotorr") || s.StartsWith("loro") || s.StartsWith("canari") || s.StartsWith("cacatu")
+        || IsParakeet(s);
+
+    private static bool IsParakeet(string text) =>
+        text.Contains("perico") || text.Contains("periquit") || text.Contains("australian");
 
     /// <summary>Lower case without accents: "Hámster" → "hamster".</summary>
     private static string Normalize(string? text)

@@ -24,6 +24,10 @@ public class Pet
     [Range(1, int.MaxValue, ErrorMessage = "Selecciona el dueño de la mascota.")]
     public int OwnerId { get; set; }
 
+    /// <summary>Web path of the uploaded photo (e.g. "/uploads/mascotas/{guid}.jpg"). Null = use the illustration.</summary>
+    [StringLength(200)]
+    public string? PhotoPath { get; set; }
+
     public Owner? Owner { get; set; }
 
     public List<Appointment> Appointments { get; set; } = [];

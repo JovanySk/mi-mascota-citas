@@ -24,6 +24,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(p => p.Name).HasMaxLength(60);
             entity.Property(p => p.Species).HasMaxLength(40);
             entity.Property(p => p.Breed).HasMaxLength(60);
+            entity.Property(p => p.PhotoPath).HasMaxLength(200);
 
             // An owner with pets cannot be deleted by accident.
             entity.HasOne(p => p.Owner)

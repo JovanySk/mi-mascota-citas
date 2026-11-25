@@ -27,3 +27,8 @@ appsettings.*.local.json
 
 # Original AI images with background (large); the cutouts in assets/cutouts are versioned
 assets/img-src/
+
+# Pet photos uploaded at runtime (the folder is kept with .gitkeep)
+src/MiMascota.Web/wwwroot/uploads/**
+!src/MiMascota.Web/wwwroot/uploads/mascotas/
+!src/MiMascota.Web/wwwroot/uploads/mascotas/.gitkeep

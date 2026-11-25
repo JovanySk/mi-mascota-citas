@@ -1,5 +1,8 @@
 @model Pet?
-@* Round avatar chosen by species/breed (see ViewModels/PetAvatar.cs). *@
-<span class="pet-avatar" title="@Model?.Species">
-    <img src="@PetAvatar.For(Model)" alt="" width="96" height="96" />
+@* Round avatar: the pet's uploaded photo, or an illustration chosen by species/breed (see ViewModels/PetAvatar.cs). *@
+@{
+    var hasPhoto = !string.IsNullOrWhiteSpace(Model?.PhotoPath);
+}
+<span class="pet-avatar @(hasPhoto ? "has-photo" : "")" title="@Model?.Species">
+    <img src="@PetAvatar.ImageFor(Model)" alt="@(hasPhoto ? $"Foto de {Model!.Name}" : "")" width="96" height="96" loading="lazy" />
 </span>

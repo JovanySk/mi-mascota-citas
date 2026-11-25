@@ -5,6 +5,8 @@
 @{
     ViewData["Title"] = "Nueva cita";
     var clinic = ClinicOptions.Value;
+    var selectedPet = Model.Pets.FirstOrDefault(p => p.Id == Model.PetId);
+    var hasOwners = Model.Owners.Any();
 }
 <header class="page-head">
     <div class="page-head-text">
@@ -21,12 +23,29 @@
         <form asp-action="Create" method="post" class="mm-card mm-form" id="appointment-form">
             <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger" role="alert"></div>
 
+            <div id="quick-pet-success" class="mm-alert mm-alert-success" role="status" hidden></div>
+
             <div class="mb-3">
-                <label asp-for="PetId" class="form-label"></label>
-                <select asp-for="PetId" asp-items="Model.Pets" class="form-select">
-                    <option value="">Selecciona una mascota…</option>
-                </select>
+                <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-1">
+                    <label asp-for="PetId" class="form-label mb-0"></label>
+                    <button type="button" class="link-add" data-bs-toggle="modal" data-bs-target="#quick-pet-modal">
+                        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Registrar mascota nueva
+                    </button>
+                </div>
+                <div class="pet-select">
+                    <span class="pet-avatar" data-pet-avatar>
+                        <img src="@(selectedPet?.Avatar ?? "/img/paw.svg")" alt="" width="96" height="96" data-empty="/img/paw.svg" />
+                    </span>
+                    <select asp-for="PetId" class="form-select">
+                        <option value="">Selecciona una mascota…</option>
+                        @foreach (var pet in Model.Pets)
+                        {
+                            <option value="@pet.Id" data-avatar="@pet.Avatar">@pet.Label</option>
+                        }
+                    </select>
+                </div>
                 <span asp-validation-for="PetId" class="field-error"></span>
+                <div class="form-text">¿Paciente nuevo? Regístralo aquí mismo sin salir de la cita: perro, gato, cotorro, tortuga…</div>
             </div>
 
             <div class="row g-3 mb-3">
@@ -79,7 +98,86 @@
     </div>
 </div>
 
+@* Quick registration of a pet (and, if needed, its owner) without leaving the booking form.
+   Posted with AJAX to /Pets/QuickCreate by wwwroot/js/quick-pet.js. *@
+<div class="modal fade mm-modal" id="quick-pet-modal" tabindex="-1" aria-labelledby="quick-pet-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+        <form class="modal-content" id="quick-pet-form" asp-controller="Pets" asp-action="QuickCreate" method="post"
+              enctype="multipart/form-data" novalidate>
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">Paciente nuevo</span>
+                    <h2 class="modal-title" id="quick-pet-title">Registrar mascota</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mm-alert mm-alert-danger" data-error-summary role="alert" hidden></div>
+
+                <div class="mb-4">
+                    <partial name="_PhotoField" model='new PhotoFieldModel(null, "/img/paw.svg", "qp-photo")' />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="qp-name">Nombre</label>
+                        <input class="form-control" id="qp-name" name="Name" maxlength="60" autocomplete="off" />
+                        <span class="field-error" data-error-for="Name"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="qp-breed">Raza <span class="label-optional">(opcional)</span></label>
+                        <input class="form-control" id="qp-breed" name="Breed" maxlength="60" placeholder="ej. Perico australiano" autocomplete="off" />
+                        <span class="field-error" data-error-for="Breed"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="form-label d-block" id="qp-species-label">Especie</span>
+                    <partial name="_SpeciesPicker" model='new SpeciesPickerModel(null, "qp-species")' />
+                    <span class="field-error" data-error-for="Species"></span>
+                    <span class="field-error" data-error-for="SpeciesOther"></span>
+                </div>
+
+                <fieldset class="mb-2">
+                    <legend class="form-label">Dueño</legend>
+                    <div class="mm-segmented mb-3" role="radiogroup" aria-label="Tipo de dueño">
+                        <input type="radio" class="btn-check" name="NewOwner" id="qp-owner-existing" value="false" checked="@hasOwners" />
+                        <label for="qp-owner-existing">Ya es cliente</label>
+                        <input type="radio" class="btn-check" name="NewOwner" id="qp-owner-new" value="true" checked="@(!hasOwners)" />
+                        <label for="qp-owner-new">Dueño nuevo</label>
+                    </div>
+                    <div data-owner-existing>
+                        <label class="visually-hidden" for="qp-owner">Dueño</label>
+                        <select class="form-select" id="qp-owner" name="OwnerId" asp-items="Model.Owners">
+                            <option value="0">Selecciona un dueño…</option>
+                        </select>
+                        <span class="field-error" data-error-for="OwnerId"></span>
+                    </div>
+                    <div class="row g-3" data-owner-new hidden>
+                        <div class="col-sm-7">
+                            <label class="form-label" for="qp-owner-name">Nombre del dueño</label>
+                            <input class="form-control" id="qp-owner-name" name="OwnerName" maxlength="100" autocomplete="off" />
+                            <span class="field-error" data-error-for="OwnerName"></span>
+                        </div>
+                        <div class="col-sm-5">
+                            <label class="form-label" for="qp-owner-phone">Teléfono</label>
+                            <input class="form-control" id="qp-owner-phone" name="OwnerPhone" type="tel" maxlength="20" placeholder="55 1234 5678" autocomplete="off" />
+                            <span class="field-error" data-error-for="OwnerPhone"></span>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="mm-btn mm-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="mm-btn mm-btn-primary" data-submit><i class="bi bi-check2" aria-hidden="true"></i> Registrar mascota</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/appointment-create.js" asp-append-version="true"></script>
+    <script src="~/js/pet-form.js" asp-append-version="true"></script>
+    <script src="~/js/quick-pet.js" asp-append-version="true"></script>
 }

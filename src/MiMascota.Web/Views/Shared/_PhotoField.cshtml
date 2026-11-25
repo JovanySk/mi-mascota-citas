@@ -1,0 +1,32 @@
+@model PhotoFieldModel
+@*
+    Optional pet photo: on a phone the button opens the camera (capture="environment").
+    wwwroot/js/pet-form.js draws the chosen image in the round preview with FileReader.
+    The server checks size (≤ 5 MB) and the real type (JPG, PNG, WebP) again.
+*@
+@{
+    var hasPhoto = !string.IsNullOrWhiteSpace(Model.CurrentPhoto);
+}
+<div class="photo-field" data-photo-field>
+    <span class="pet-avatar photo-preview @(hasPhoto ? "has-photo" : "")" data-photo-preview>
+        <img src="@(hasPhoto ? Model.CurrentPhoto : Model.Illustration)" alt="Vista previa de la foto" width="112" height="112"
+             data-illustration="@Model.Illustration" data-saved="@Model.CurrentPhoto" />
+    </span>
+    <div class="photo-field-body">
+        <span class="form-label d-block" id="@(Model.IdPrefix)-label">Foto <span class="label-optional">(opcional)</span></span>
+        <div class="d-flex flex-wrap gap-2">
+            <label class="mm-btn mm-btn-ghost mm-btn-sm photo-pick" for="@(Model.IdPrefix)-input">
+                <i class="bi bi-camera" aria-hidden="true"></i> <span data-photo-pick-text>@(hasPhoto ? "Cambiar foto" : "Tomar o elegir foto")</span>
+            </label>
+            <input type="file" class="photo-input" id="@(Model.IdPrefix)-input" name="Photo"
+                   accept="image/jpeg,image/png,image/webp" capture="environment"
+                   aria-describedby="@(Model.IdPrefix)-help" data-photo-input />
+            <button type="button" class="mm-btn mm-btn-danger-ghost mm-btn-sm" data-photo-remove @(hasPhoto ? "" : "hidden")>
+                <i class="bi bi-x-lg" aria-hidden="true"></i> Quitar foto
+            </button>
+        </div>
+        <input type="hidden" name="RemovePhoto" value="false" data-photo-remove-flag />
+        <div class="form-text" id="@(Model.IdPrefix)-help">JPG, PNG o WebP de hasta 5 MB. Con el celular se abre la cámara.</div>
+        @Html.ValidationMessage("Photo", new { @class = "field-error", data_photo_error = "" })
+    </div>
+</div>

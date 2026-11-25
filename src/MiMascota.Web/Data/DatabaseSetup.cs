@@ -47,6 +47,7 @@ public static class DatabaseSetup
         if (db.Database.IsSqlite())
         {
             await db.Database.EnsureCreatedAsync();
+            await AddMissingSqliteColumnsAsync(db);
         }
         else
         {
@@ -58,6 +59,22 @@ public static class DatabaseSetup
             var clinic = services.GetRequiredService<IOptions<ClinicOptions>>().Value;
             var time = services.GetRequiredService<TimeProvider>();
             await SeedData.InitializeAsync(db, clinic, time);
+        }
+    }
+
+    /// <summary>
+    /// EnsureCreated never changes an existing SQLite file, so a local mimascota.db created
+    /// before the pet photos existed gets the new column here (SQL Server uses migrations).
+    /// </summary>
+    private static async Task AddMissingSqliteColumnsAsync(AppDbContext db)
+    {
+        var hasPhotoColumn = await db.Database
+            .SqlQueryRaw<int>("SELECT COUNT(*) AS \"Value\" FROM pragma_table_info('Pets') WHERE name = 'PhotoPath'")
+            .SingleAsync() > 0;
+
+        if (!hasPhotoColumn)
+        {
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Pets\" ADD COLUMN \"PhotoPath\" TEXT NULL");
         }
     }
 
