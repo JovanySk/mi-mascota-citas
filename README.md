@@ -4,7 +4,7 @@
 
 Appointment booking system for **Mi Mascota**, a small veterinary clinic in Tantoyuca, Veracruz. The demo data (owners, pets, appointments) is fictional. Staff register pet owners and their pets, keep a catalog of services, and book appointments on a calendar grid that only offers free time slots. Each appointment then moves through a controlled workflow: **Pendiente → Confirmada → Atendida**, or **Cancelada**.
 
-**Stack:** C# · ASP.NET Core 9 MVC (Razor views) · Entity Framework Core 9 · SQL Server (SQLite for local runs) · Bootstrap 5 · jQuery/AJAX · xUnit
+**Stack:** C# · ASP.NET Core 9 MVC (Razor views) · Entity Framework Core 9 · SQL Server (SQLite for local runs) · SkiaSharp (photo processing) · Bootstrap 5 · jQuery/AJAX · xUnit
 
 The UI is in Spanish (the clinic's language). The code is in English.
 
@@ -14,7 +14,7 @@ The UI is in Spanish (the clinic's language). The code is in English.
 - **Appointments**: list filtered by date and status, plus one button for each status the appointment can move to next.
 - **Dynamic availability**: in the booking form, choosing a service and a date calls `GET /Appointments/Availability` with jQuery AJAX. The free slots come back as JSON and are drawn as buttons, with no page reload.
 - **Any kind of patient**: the pet form has a species picker with illustrated chips (Perro, Gato, Ave, Cuyo, Hámster, Conejo, Hurón, Tortuga, Iguana / reptil, and *Otro* with a free-text field). Species is still stored as text, so nothing is lost for unusual pets.
-- **Pet photos**: staff can take a photo with the phone camera (`capture="environment"`) or pick a file, see it right away in a round preview (FileReader), replace it or remove it. The server accepts JPG, PNG or WebP up to 5 MB, checks the real type by its magic bytes (not the name or the browser's content type) and saves it as `wwwroot/uploads/mascotas/{random guid}.{ext}`. The old file is deleted when the photo is replaced or removed and when the pet is deleted. The photo then replaces the illustration everywhere the pet appears (agenda, appointments, pets, owners, booking form).
+- **Pet photos**: staff can take a photo with the phone camera or pick one from the gallery, see it right away in a round preview (FileReader), replace it or remove it. The server accepts JPG, PNG or WebP up to 5 MB and checks the real type by its magic bytes. It then decodes the whole image with SkiaSharp (corrupt or truncated files are rejected), applies the camera orientation, scales it to 1000 px max and saves it as WebP **without metadata**, so the GPS location that phones store in EXIF is never kept. Files get a random name (`wwwroot/uploads/mascotas/{guid}.webp`) and the old file is deleted when the photo is replaced or removed and when the pet is deleted. The photo replaces the illustration everywhere the pet appears (agenda, appointments, pets, owners, booking form).
 - **Register a pet while booking**: "Registrar mascota nueva" in *Nueva cita* opens a modal (species chips, name, breed, existing owner or a new owner with name and phone, optional photo). It posts `multipart/form-data` with the antiforgery token to `POST /Pets/QuickCreate` via `fetch`; the server validates with the same rules as the full forms and returns Spanish errors as JSON, or the new pet, which is added to the drop-down and selected without reloading the page.
 - **Double-booking protection**: the server checks the slot again before saving. If it overlaps another appointment, the form shows a descriptive message, e.g. *"El horario 12:30–13:30 ya está ocupado: se empalma con la cita de Rocky (Baño y estética, 13:00–14:00)."*
 - **Controlled state changes**: invalid transitions are rejected with a Spanish message that explains why.
@@ -123,7 +123,7 @@ EF Core (AppDbContext) ── SQL Server (migrations) or SQLite (EnsureCreated)
 ```
 src/MiMascota.Web/
   Controllers/   Home, Appointments, Owners, Pets, Services
-  Services/      Result, ClinicSchedule, AvailabilityService, AppointmentService, AppointmentStateMachine, PetPhotoStorage
+  Services/      Result, ClinicSchedule, AvailabilityService, AppointmentService, AppointmentStateMachine, PetPhotoStorage, PhotoNormalizer
   Models/        Owner, Pet, VetService, Appointment, AppointmentStatus (+ Spanish display names)
   ViewModels/    Form and list models for the views
   Data/          AppDbContext, SeedData, DatabaseSetup, Migrations (SQL Server)
@@ -193,7 +193,7 @@ docker run -p 8080:8080 -e Database__Provider=Sqlite mi-mascota
 dotnet test
 ```
 
-111 test cases (51 test methods) with xUnit:
+115 test cases (55 test methods) with xUnit:
 
 - **AvailabilityServiceTests**: SQLite in-memory database and a fixed clock. Covers the 30-minute grid, durations of 60/90 minutes, overlaps, cancelled appointments freeing slots, Sundays, past dates, no past slots today, unknown service, and hours read from configuration.
 - **AppointmentServiceTests**: covers booking (end time, overlap rejection for exact, partial-start and partial-end overlaps, back-to-back, re-using a cancelled slot, schedule violations) and every valid and invalid status transition (4 + 12 cases). Also checks that an appointment can't be confirmed in the past.

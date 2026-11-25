@@ -6,7 +6,7 @@ public interface IPetPhotoStorage
     /// <summary>Checks size and real image type (by magic bytes). Returns the file extension to use.</summary>
     Result<string> Validate(IFormFile file);
 
-    /// <summary>Validates and saves the photo with a random name. Returns its web path ("/uploads/mascotas/….jpg").</summary>
+    /// <summary>Validates, re-encodes (WebP, no metadata, max 1000 px) and saves the photo with a random name. Returns its web path ("/uploads/mascotas/….webp").</summary>
     Task<Result<string>> SaveAsync(IFormFile file, CancellationToken cancellationToken = default);
 
     /// <summary>Deletes a photo saved by this storage. Ignores null and paths outside the uploads folder.</summary>
@@ -61,14 +61,25 @@ public class PetPhotoStorage(string webRootPath) : IPetPhotoStorage
             return validation;
         }
 
-        Directory.CreateDirectory(PhysicalFolder);
-        // Never trust the client's file name: a random name plus the extension of the detected type.
-        var fileName = $"{Guid.NewGuid():N}{validation.Value}";
-
-        await using (var target = File.Create(Path.Combine(PhysicalFolder, fileName)))
+        // The magic bytes only say what the file claims to be: decode it completely and re-encode it.
+        // This rejects corrupt or truncated images and drops EXIF metadata such as the GPS location.
+        byte[] original;
+        using (var buffer = new MemoryStream())
         {
-            await file.CopyToAsync(target, cancellationToken);
+            await file.CopyToAsync(buffer, cancellationToken);
+            original = buffer.ToArray();
         }
+
+        var webp = PhotoNormalizer.ToWebp(original);
+        if (webp is null)
+        {
+            return Result<string>.Failure("La foto está dañada o incompleta. Elige otra imagen.");
+        }
+
+        Directory.CreateDirectory(PhysicalFolder);
+        // Never trust the client's file name: a random name, always saved as WebP.
+        var fileName = $"{Guid.NewGuid():N}.webp";
+        await File.WriteAllBytesAsync(Path.Combine(PhysicalFolder, fileName), webp, cancellationToken);
 
         return Result<string>.Success(WebFolder + fileName);
     }

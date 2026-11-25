@@ -190,7 +190,7 @@ public class WebIntegrationTests(MiMascotaWebFactory factory) : IClassFixture<Mi
             { new StringContent("Cotorro"), "Breed" },
             { new StringContent("false"), "NewOwner" },
             { new StringContent(ownerId.ToString()), "OwnerId" },
-            { new ByteArrayContent(PetPhotoStorageTests.Png), "Photo", "paco.png" }
+            { new ByteArrayContent(PetPhotoStorageTests.RealImage()), "Photo", "paco.png" }
         };
         var response = await client.PostAsync("/Pets/QuickCreate", form);
 
