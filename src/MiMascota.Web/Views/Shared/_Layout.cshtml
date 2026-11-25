@@ -72,11 +72,11 @@
                         <partial name="_PawIcon" />
                         <span>mi mascota</span>
                     </a>
-                    <p class="footer-desc">Clínica veterinaria para perros, gatos, cuyos, hámsters y conejos.</p>
+                    <p class="footer-desc">Clínica veterinaria para perros, gatos, aves, reptiles y pequeños mamíferos.</p>
                     <ul class="footer-contact">
                         <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Directions">Centro, Tantoyuca, Veracruz</a></li>
                         <li><i class="bi bi-clock-fill" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Hours">@clinic.OpenDaysLabel() · @clinic.HoursLabel()</a></li>
-                        <li><i class="bi bi-whatsapp" aria-hidden="true"></i> Citas por WhatsApp</li>
+                        <li><i class="bi bi-whatsapp" aria-hidden="true"></i> <a asp-controller="Clinic" asp-action="Contact">Escríbenos para agendar</a></li>
                     </ul>
                 </div>
                 <nav class="footer-col" aria-label="Clínica">
