@@ -284,4 +284,4 @@ CI (GitHub Actions) runs the same command on every push and pull request.
 
 ---
 
-Author: **Jovany Morales del Ángel** · MIT License
+Author: **Jovany Morales del Ángel** · © 2026 All rights reserved.
