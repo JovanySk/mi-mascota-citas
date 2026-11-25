@@ -2,7 +2,7 @@
 
 ![CI](../../actions/workflows/ci.yml/badge.svg)
 
-Appointment booking system for a small veterinary clinic, **Mi Mascota**. Staff register pet owners and their pets, keep a catalog of services, and book appointments on a calendar grid that only offers free time slots. Each appointment then moves through a controlled workflow: **Pendiente → Confirmada → Atendida**, or **Cancelada**.
+Appointment booking system for **Mi Mascota**, a small veterinary clinic in Tantoyuca, Veracruz. The demo data (owners, pets, appointments) is fictional. Staff register pet owners and their pets, keep a catalog of services, and book appointments on a calendar grid that only offers free time slots. Each appointment then moves through a controlled workflow: **Pendiente → Confirmada → Atendida**, or **Cancelada**.
 
 **Stack:** C# · ASP.NET Core 9 MVC (Razor views) · Entity Framework Core 9 · SQL Server (SQLite for local runs) · Bootstrap 5 · jQuery/AJAX · xUnit
 
