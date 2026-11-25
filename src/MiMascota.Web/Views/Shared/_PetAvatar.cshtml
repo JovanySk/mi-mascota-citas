@@ -1,0 +1,5 @@
+@model Pet?
+@* Round avatar chosen by species/breed (see ViewModels/PetAvatar.cs). *@
+<span class="pet-avatar" title="@Model?.Species">
+    <img src="@PetAvatar.For(Model)" alt="" width="96" height="96" />
+</span>

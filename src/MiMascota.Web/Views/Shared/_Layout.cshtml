@@ -1,6 +1,12 @@
+@using Microsoft.Extensions.Options
+@using MiMascota.Web.Options
+@inject IOptions<ClinicOptions> ClinicOptions
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     string Active(string name) => controller == name ? "active" : "";
+    string? Current(string name) => controller == name ? "page" : null;
+    var clinic = ClinicOptions.Value;
+    var isHome = controller == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index";
 }
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -8,42 +14,110 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] · Mi Mascota</title>
+    <meta name="theme-color" content="#12CED6" />
+    <link rel="icon" href="~/img/paw.svg" type="image/svg+xml" />
+    <link rel="preload" href="~/fonts/baloo2-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/montserrat-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark app-navbar mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">
-                <i class="bi bi-heart-pulse-fill me-1"></i> Mi Mascota
+<body class="@(isHome ? "is-home" : "is-inner")">
+    <a class="visually-hidden-focusable skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="nav-wrap">
+        <nav class="navbar navbar-expand-lg mm-nav" aria-label="Principal">
+            <a class="navbar-brand mm-brand" asp-controller="Home" asp-action="Index" aria-label="Mi Mascota, inicio">
+                <partial name="_PawIcon" />
+                <span>mi mascota</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            <button class="navbar-toggler mm-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                     aria-controls="mainNav" aria-expanded="false" aria-label="Mostrar menú">
-                <span class="navbar-toggler-icon"></span>
+                <i class="bi bi-list" aria-hidden="true"></i>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Index">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Appointments")" asp-controller="Appointments" asp-action="Index">Citas</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Owners")" asp-controller="Owners" asp-action="Index">Dueños</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Pets")" asp-controller="Pets" asp-action="Index">Mascotas</a></li>
-                    <li class="nav-item"><a class="nav-link @Active("Services")" asp-controller="Services" asp-action="Index">Servicios</a></li>
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link @Active("Home")" aria-current="@Current("Home")" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link @Active("Appointments")" aria-current="@Current("Appointments")" asp-controller="Appointments" asp-action="Index">Citas</a></li>
+                    <li class="nav-item"><a class="nav-link @Active("Owners")" aria-current="@Current("Owners")" asp-controller="Owners" asp-action="Index">Dueños</a></li>
+                    <li class="nav-item"><a class="nav-link @Active("Pets")" aria-current="@Current("Pets")" asp-controller="Pets" asp-action="Index">Mascotas</a></li>
+                    <li class="nav-item"><a class="nav-link @Active("Services")" aria-current="@Current("Services")" asp-controller="Services" asp-action="Index">Servicios</a></li>
                 </ul>
-                <a class="btn btn-light btn-sm" asp-controller="Appointments" asp-action="Create">
-                    <i class="bi bi-calendar-plus"></i> Nueva cita
-                </a>
+                <a class="mm-btn mm-btn-primary mm-nav-cta" asp-controller="Appointments" asp-action="Create">+ Nueva cita</a>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <main class="container pb-5">
-        <partial name="_Alerts" />
+    <main id="contenido" class="@(isHome ? "" : "mm-container page-main")">
+        @if (isHome)
+        {
+            <div class="mm-container"><partial name="_Alerts" /></div>
+        }
+        else
+        {
+            <partial name="_Alerts" />
+        }
         @RenderBody()
     </main>
 
-    <footer class="border-top py-3 text-muted small">
-        <div class="container">Clínica Veterinaria Mi Mascota · Sistema de citas</div>
+    <footer class="mm-footer">
+        <img class="footer-cat" src="~/img/mascotas/gato-asomado.webp" alt="" width="797" height="759" loading="lazy" />
+        <div class="mm-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a class="mm-brand mm-brand-light" asp-controller="Home" asp-action="Index">
+                        <partial name="_PawIcon" />
+                        <span>mi mascota</span>
+                    </a>
+                    <p class="footer-desc">Clínica veterinaria para perros, gatos, cuyos, hámsters y conejos.</p>
+                    <ul class="footer-contact">
+                        <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Av. de los Insurgentes 1234, CDMX</li>
+                        <li><i class="bi bi-clock-fill" aria-hidden="true"></i> @clinic.OpenDaysLabel() · @clinic.HoursLabel()</li>
+                        <li><i class="bi bi-telephone-fill" aria-hidden="true"></i> 55 9696 9191</li>
+                    </ul>
+                </div>
+                <nav class="footer-col" aria-label="Clínica">
+                    <h2>Clínica</h2>
+                    <a href="/#familia">Sobre nosotros</a>
+                    <a href="/#equipo">Nuestro equipo</a>
+                    <a href="/#agenda">Horarios</a>
+                    <a href="#">Cómo llegar</a>
+                </nav>
+                <nav class="footer-col" aria-label="Servicios">
+                    <h2>Servicios</h2>
+                    <a asp-controller="Services" asp-action="Index">Consulta general</a>
+                    <a asp-controller="Services" asp-action="Index">Vacunas</a>
+                    <a asp-controller="Services" asp-action="Index">Baño y estética</a>
+                    <a asp-controller="Services" asp-action="Index">Exóticos</a>
+                </nav>
+                <nav class="footer-col" aria-label="Sistema">
+                    <h2>Sistema</h2>
+                    <a asp-controller="Appointments" asp-action="Index">Citas</a>
+                    <a asp-controller="Appointments" asp-action="Create">Nueva cita</a>
+                    <a asp-controller="Owners" asp-action="Index">Dueños</a>
+                    <a asp-controller="Pets" asp-action="Index">Mascotas</a>
+                </nav>
+                <nav class="footer-col" aria-label="Ayuda">
+                    <h2>Ayuda</h2>
+                    <a href="#">Preguntas frecuentes</a>
+                    <a href="#">Términos de uso</a>
+                    <a href="#">Aviso de privacidad</a>
+                    <a href="#">Contacto</a>
+                </nav>
+            </div>
+
+            <div class="footer-social">
+                <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
+                <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+                <a href="#" aria-label="TikTok"><i class="bi bi-tiktok" aria-hidden="true"></i></a>
+                <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2026 Clínica Veterinaria Mi Mascota. Todos los derechos reservados.</p>
+                <p class="footer-note">Proyecto de portafolio: clínica, datos y teléfonos son ficticios. Imágenes generadas con IA. Desarrollado por Jovany.</p>
+            </div>
+        </div>
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

@@ -1,45 +1,63 @@
 @model IReadOnlyList<VetService>
 @{
     ViewData["Title"] = "Servicios";
+
+    // Icon per kind of service (by name), only for the cards.
+    static string IconFor(string name)
+    {
+        var n = name.ToLowerInvariant();
+        if (n.Contains("baño") || n.Contains("estética")) return "bi-droplet-half";
+        if (n.Contains("vacun")) return "bi-shield-plus";
+        if (n.Contains("exótic")) return "bi-stars";
+        if (n.Contains("uñas")) return "bi-scissors";
+        if (n.Contains("esteril") || n.Contains("cirug")) return "bi-bandaid";
+        return "bi-heart-pulse";
+    }
 }
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0">Servicios</h1>
-    <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg"></i> Nuevo servicio</a>
-</div>
+<header class="page-head">
+    <div class="page-head-text">
+        <span class="eyebrow">Catálogo</span>
+        <h1 class="page-title">Servicios</h1>
+        <p class="page-sub">Cada servicio tiene su propia duración: la agenda solo ofrece horarios donde cabe completo.</p>
+        <div class="page-actions">
+            <a class="mm-btn mm-btn-primary" asp-action="Create">+ Nuevo servicio</a>
+        </div>
+    </div>
+    <span class="page-giant" aria-hidden="true">cuidado</span>
+    <img class="page-pet page-pet-vet" src="~/img/mascotas/vet-perro.webp" alt="" width="464" height="900" />
+</header>
 
 @if (Model.Count == 0)
 {
-    <div class="alert alert-light border">No hay servicios registrados.</div>
+    <div class="empty-state">
+        <img src="~/img/mascotas/avatar/vet-perro.webp" alt="" width="96" height="96" />
+        <div>
+            <strong>No hay servicios registrados.</strong>
+            <p class="mb-0"><a asp-action="Create">Agrega el primero</a>.</p>
+        </div>
+    </div>
 }
 else
 {
-    <div class="card table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Servicio</th>
-                    <th>Duración</th>
-                    <th>Precio</th>
-                    <th class="text-end">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var service in Model)
-                {
-                    <tr>
-                        <td class="fw-semibold">@service.Name</td>
-                        <td>@service.DurationMinutes min</td>
-                        <td>@service.Price.ToString("C")</td>
-                        <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@service.Id">Editar</a>
-                            <form asp-action="Delete" asp-route-id="@service.Id" method="post" class="d-inline"
-                                  data-confirm="¿Eliminar el servicio @service.Name?">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <ul class="card-grid">
+        @foreach (var service in Model)
+        {
+            <li class="mm-card service-card">
+                <span class="service-icon"><i class="bi @IconFor(service.Name)" aria-hidden="true"></i></span>
+                <h2 class="card-name">@service.Name</h2>
+                <div class="service-facts">
+                    <span class="service-price">@service.Price.ToString("C0")</span>
+                    <span class="chip-soft"><i class="bi bi-clock" aria-hidden="true"></i> @service.DurationMinutes min</span>
+                </div>
+                <div class="card-actions">
+                    <a class="mm-btn mm-btn-sm mm-btn-primary" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@service.Id">Agendar</a>
+                    <a class="mm-btn mm-btn-sm mm-btn-ghost" asp-action="Edit" asp-route-id="@service.Id">Editar</a>
+                    <form asp-action="Delete" asp-route-id="@service.Id" method="post" class="d-inline"
+                          data-confirm="¿Eliminar el servicio @service.Name?">
+                        <button type="submit" class="mm-btn mm-btn-sm mm-btn-danger-ghost">Eliminar</button>
+                    </form>
+                </div>
+            </li>
+        }
+    </ul>
 }

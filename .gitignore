@@ -24,3 +24,6 @@ TestResults/
 # Secrets
 .env
 appsettings.*.local.json
+
+# Original AI images with background (large); the cutouts in assets/cutouts are versioned
+assets/img-src/

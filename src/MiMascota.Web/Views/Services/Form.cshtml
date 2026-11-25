@@ -3,22 +3,29 @@
     var isNew = Model.Id == 0;
     ViewData["Title"] = isNew ? "Nuevo servicio" : "Editar servicio";
 }
-<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+<header class="page-head page-head-compact">
+    <div class="page-head-text">
+        <span class="eyebrow">Catálogo</span>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+    </div>
+    <span class="page-giant" aria-hidden="true">cuidado</span>
+    <img class="page-pet page-pet-vet" src="~/img/mascotas/vet-gato.webp" alt="" width="549" height="900" />
+</header>
 
-<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="card card-body" style="max-width: 36rem">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="mm-card mm-form mm-form-narrow">
+    <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger"></div>
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
         <label asp-for="Name" class="form-label"></label>
         <input asp-for="Name" class="form-control" autofocus />
-        <span asp-validation-for="Name" class="text-danger small"></span>
+        <span asp-validation-for="Name" class="field-error"></span>
     </div>
     <div class="row g-3 mb-3">
         <div class="col-sm-6">
             <label asp-for="DurationMinutes" class="form-label"></label>
             <input asp-for="DurationMinutes" class="form-control" step="15" min="15" max="240" />
-            <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+            <span asp-validation-for="DurationMinutes" class="field-error"></span>
         </div>
         <div class="col-sm-6">
             <label asp-for="Price" class="form-label"></label>
@@ -26,13 +33,13 @@
                 <span class="input-group-text">$</span>
                 <input asp-for="Price" class="form-control" />
             </div>
-            <span asp-validation-for="Price" class="text-danger small"></span>
+            <span asp-validation-for="Price" class="field-error"></span>
         </div>
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="mm-btn mm-btn-primary mm-btn-lg">Guardar</button>
+        <a asp-action="Index" class="mm-btn mm-btn-ghost mm-btn-lg">Cancelar</a>
     </div>
 </form>
 

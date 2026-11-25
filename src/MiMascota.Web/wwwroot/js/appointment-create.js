@@ -39,7 +39,7 @@ $(function () {
                         checked: slot.time === preselected
                     }).appendTo($slots);
                     $('<label>', {
-                        'for': id, 'class': 'btn btn-outline-primary btn-sm', title: slot.label, text: slot.time
+                        'for': id, 'class': 'slot-btn', title: slot.label, text: slot.time
                     }).appendTo($slots);
                 });
 

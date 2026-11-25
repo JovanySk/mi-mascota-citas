@@ -3,31 +3,38 @@
     var isNew = Model.Id == 0;
     ViewData["Title"] = isNew ? "Nuevo dueño" : "Editar dueño";
 }
-<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+<header class="page-head page-head-compact">
+    <div class="page-head-text">
+        <span class="eyebrow">Clientes</span>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+    </div>
+    <span class="page-giant" aria-hidden="true">humanos</span>
+    <img class="page-pet page-pet-pacientes" src="~/img/mascotas/pacientes.webp" alt="" width="1021" height="776" />
+</header>
 
-<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="card card-body" style="max-width: 36rem">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="mm-card mm-form mm-form-narrow">
+    <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger"></div>
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
         <label asp-for="Name" class="form-label"></label>
         <input asp-for="Name" class="form-control" autofocus />
-        <span asp-validation-for="Name" class="text-danger small"></span>
+        <span asp-validation-for="Name" class="field-error"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Phone" class="form-label"></label>
         <input asp-for="Phone" class="form-control" placeholder="55 1234 5678" />
-        <span asp-validation-for="Phone" class="text-danger small"></span>
+        <span asp-validation-for="Phone" class="field-error"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Email" class="form-label"></label>
         <input asp-for="Email" class="form-control" placeholder="opcional" />
-        <span asp-validation-for="Email" class="text-danger small"></span>
+        <span asp-validation-for="Email" class="field-error"></span>
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="mm-btn mm-btn-primary mm-btn-lg">Guardar</button>
+        <a asp-action="Index" class="mm-btn mm-btn-ghost mm-btn-lg">Cancelar</a>
     </div>
 </form>
 

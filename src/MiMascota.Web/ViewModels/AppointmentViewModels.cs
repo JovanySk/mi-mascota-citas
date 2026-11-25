@@ -43,11 +43,28 @@ public class AppointmentListViewModel
     public IReadOnlyList<Appointment> Appointments { get; set; } = [];
 }
 
-/// <summary>Home page summary.</summary>
+/// <summary>Home page: landing sections fed with the real agenda of the day.</summary>
 public class DashboardViewModel
 {
     public DateOnly Today { get; set; }
     public IReadOnlyList<Appointment> TodayAppointments { get; set; } = [];
 
     public int CountFor(AppointmentStatus status) => TodayAppointments.Count(a => a.Status == status);
+
+    /// <summary>"9:00–18:00"</summary>
+    public string HoursLabel { get; set; } = string.Empty;
+
+    /// <summary>"Lun a Sáb"</summary>
+    public string OpenDaysLabel { get; set; } = string.Empty;
+
+    public int SlotMinutes { get; set; }
+    public TimeOnly OpeningTime { get; set; }
+    public TimeOnly ClosingTime { get; set; }
+
+    /// <summary>Service and day offered in the "Nueva cita rápida" card (null when there are no services).</summary>
+    public VetService? QuickService { get; set; }
+    public DateOnly QuickDate { get; set; }
+
+    /// <summary>The grooming service, if the catalog has one (bath banner).</summary>
+    public VetService? BathService { get; set; }
 }

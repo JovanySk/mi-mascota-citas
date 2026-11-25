@@ -20,14 +20,14 @@ public static class AppointmentStatusExtensions
         _ => status.ToString()
     };
 
-    /// <summary>Bootstrap badge class for each status.</summary>
+    /// <summary>CSS class of the status badge (colors defined in site.css).</summary>
     public static string ToBadgeClass(this AppointmentStatus status) => status switch
     {
-        AppointmentStatus.Pending => "text-bg-warning",
-        AppointmentStatus.Confirmed => "text-bg-primary",
-        AppointmentStatus.Attended => "text-bg-success",
-        AppointmentStatus.Cancelled => "text-bg-secondary",
-        _ => "text-bg-light"
+        AppointmentStatus.Pending => "is-pending",
+        AppointmentStatus.Confirmed => "is-confirmed",
+        AppointmentStatus.Attended => "is-attended",
+        AppointmentStatus.Cancelled => "is-cancelled",
+        _ => string.Empty
     };
 
     /// <summary>Text for the button that moves an appointment INTO this status.</summary>

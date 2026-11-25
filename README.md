@@ -15,17 +15,36 @@ The UI is in Spanish (the clinic's language). The code is in English.
 - **Dynamic availability**: in the booking form, choosing a service and a date calls `GET /Appointments/Availability` with jQuery AJAX. The free slots come back as JSON and are drawn as buttons, with no page reload.
 - **Double-booking protection**: the server checks the slot again before saving. If it overlaps another appointment, the form shows a descriptive message, e.g. *"El horario 12:30–13:30 ya está ocupado: se empalma con la cita de Rocky (Baño y estética, 13:00–14:00)."*
 - **Controlled state changes**: invalid transitions are rejected with a Spanish message that explains why.
-- **Demo data**: 4 owners, 6 pets, 4 services and 8 appointments on today and the next open day.
+- **Demo data**: 8 owners, 14 pets (dogs of six breeds, cats, guinea pigs, hamsters and rabbits), 6 services and 14 appointments on today and the next open day, covering all four statuses.
 
 ## Screenshots
 
-| Appointments | New appointment (slots loaded via AJAX) |
-|---|---|
-| ![Appointments list](docs/screenshots/appointments-list.png) | ![New appointment form](docs/screenshots/new-appointment-form.png) |
+**Inicio** (landing + the real agenda of the day, full page):
 
-| Owners | Dashboard |
+![Inicio](docs/screenshots/inicio.png)
+
+| Citas | Nueva cita (slots loaded via AJAX) |
 |---|---|
-| ![Owners list](docs/screenshots/owners-list.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+| ![Citas](docs/screenshots/citas.png) | ![Nueva cita](docs/screenshots/nueva-cita.png) |
+
+| Mascotas | Dueños |
+|---|---|
+| ![Mascotas](docs/screenshots/mascotas.png) | ![Dueños](docs/screenshots/duenos.png) |
+
+| Servicios | Inicio on mobile (390 px) |
+|---|---|
+| ![Servicios](docs/screenshots/servicios.png) | ![Inicio en móvil](docs/screenshots/inicio-movil.png) |
+
+## Diseño
+
+The UI follows a design made in Figma for this project ("Mi Mascota · Inicio"): a playful clinic landing page whose panels show the real system data.
+
+- **Tokens** (CSS variables in `wwwroot/css/site.css`): turquoise `#12CED6` for fills, giant words and calls to action; deep turquoise `#0A9AA2` for turquoise text on light backgrounds; ink `#3E4347`; page `#EEF0F1`; muted `#7A8086`; footer `#1E2A2E`. Each status has its own badge colors (Pendiente amber, Confirmada turquoise, Atendida green, Cancelada red). Pill buttons, cards with 22–32 px radius and a soft shadow.
+- **Fonts**: *Baloo 2* ExtraBold for headings, the logo and the giant background words; *Montserrat* 500/600/700 for text. Both are self-hosted in `wwwroot/fonts` (no font CDN), and so are the Bootstrap Icons.
+- **Real data in the landing**: the hero cards show today's appointments and how many are still pending, plus the opening hours from `appsettings.json`. "Agenda de hoy" lists today's appointments with the same state-transition buttons as the list. "Nueva cita rápida" calls `GET /Appointments/Availability` for the grooming service on the next open day, draws taken slots struck through and links to the booking form with the slot preselected. The bath banner reads the price and duration of the "Baño y estética" service.
+- **Pet avatars**: `PetAvatar` picks an illustration from the pet's species and breed (perro → breed-specific dog, gato, cuyo, hámster, conejo), so every list shows a face.
+- **Animations** (CSS + a little vanilla JS, all disabled with `prefers-reduced-motion`): the golden puppy waves, the kitten rises from behind the headline and then bobs, the bones float, giant words slide in from the right, the "todos" pets hop one after another when the section scrolls into view (`IntersectionObserver`), team cards lift on hover and the hero numbers count up.
+- **Images**: generated with Figma AI, backgrounds removed with rembg, converted to WebP. See [docs/CREDITS.md](docs/CREDITS.md).
 
 ## Domain rules
 
@@ -161,10 +180,11 @@ docker run -p 8080:8080 -e Database__Provider=Sqlite mi-mascota
 dotnet test
 ```
 
-48 test cases (28 test methods) with xUnit:
+62 test cases (30 test methods) with xUnit:
 
 - **AvailabilityServiceTests**: SQLite in-memory database and a fixed clock. Covers the 30-minute grid, durations of 60/90 minutes, overlaps, cancelled appointments freeing slots, Sundays, past dates, no past slots today, unknown service, and hours read from configuration.
 - **AppointmentServiceTests**: covers booking (end time, overlap rejection for exact, partial-start and partial-end overlaps, back-to-back, re-using a cancelled slot, schedule violations) and every valid and invalid status transition (4 + 12 cases). Also checks that an appointment can't be confirmed in the past.
+- **PetAvatarTests**: the avatar chosen for each species and breed, and the fallback for unknown species.
 - **WebIntegrationTests**: `WebApplicationFactory` with a temporary SQLite file. Checks that every page renders, that the availability endpoint returns JSON slots or the closed-day message, that posting an overlapping appointment re-renders the form with the error, that a valid post redirects, and that a status change without an antiforgery token is rejected.
 
 CI (GitHub Actions) runs the same command on every push and pull request.

@@ -1,0 +1,50 @@
+@model Appointment
+@*
+    One appointment as a card row: time box, pet avatar, details, status and the
+    buttons allowed by AppointmentStateMachine. ViewData["ReturnUrl"] sets where
+    a status change redirects to; ViewData["ShowDate"] adds the day to the time box.
+*@
+@{
+    var returnUrl = ViewData["ReturnUrl"] as string ?? $"{Context.Request.Path}{Context.Request.QueryString}";
+    var showDate = ViewData["ShowDate"] is true;
+    var compact = ViewData["Compact"] is true; // home agenda: no notes, owner as "Nombre Apellido"
+    var owner = Model.Pet?.Owner?.Name ?? string.Empty;
+    if (compact)
+    {
+        owner = string.Join(' ', owner.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2));
+    }
+    var nextStates = AppointmentStateMachine.NextStates(Model.Status);
+}
+<article class="appt-row @(Model.Status == AppointmentStatus.Cancelled ? "is-cancelled-row" : "")">
+    <div class="appt-time">
+        @if (showDate)
+        {
+            <span class="appt-day">@Model.Start.ToString("ddd d MMM")</span>
+        }
+        <strong>@Model.Start.ToString("HH:mm")</strong>
+        <span>a @Model.End.ToString("HH:mm")</span>
+    </div>
+    <partial name="_PetAvatar" model="Model.Pet" />
+    <div class="appt-info">
+        <div class="appt-name">@Model.Pet?.Name <span class="dot">·</span> <span class="appt-breed">@(Model.Pet?.Breed ?? Model.Pet?.Species)</span></div>
+        <div class="appt-meta">@Model.VetService?.Name <span class="dot">·</span> dueño: @owner</div>
+        @if (!compact && !string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="appt-notes"><i class="bi bi-chat-left-text" aria-hidden="true"></i> @Model.Notes</div>
+        }
+    </div>
+    <div class="appt-actions">
+        <partial name="_StatusBadge" model="Model.Status" />
+        @foreach (var next in nextStates)
+        {
+            var css = next == AppointmentStatus.Cancelled ? "mm-btn-ghost" : "mm-btn-primary";
+            <form asp-controller="Appointments" asp-action="ChangeStatus" asp-route-id="@Model.Id" method="post"
+                  class="d-inline"
+                  data-confirm="@(next == AppointmentStatus.Cancelled ? $"¿Cancelar la cita de {Model.Pet?.Name}? Esta acción no se puede deshacer." : null)">
+                <input type="hidden" name="status" value="@next" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="mm-btn mm-btn-sm @css">@next.ToActionLabel()</button>
+            </form>
+        }
+    </div>
+</article>

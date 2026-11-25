@@ -1,55 +1,242 @@
 @model DashboardViewModel
 @{
     ViewData["Title"] = "Inicio";
+    string Capitalize(string text) => text.Length == 0 ? text : char.ToUpper(text[0]) + text[1..];
+
+    var todayLabel = Capitalize(Model.Today.ToString("dddd d 'de' MMMM"));
+    var pendingToday = Model.CountFor(AppointmentStatus.Pending);
+    var quick = Model.QuickService;
+    var quickDayLabel = Model.QuickDate == Model.Today.AddDays(1)
+        ? "mañana"
+        : Model.QuickDate.ToString("dddd d 'de' MMMM");
+    ViewData["ReturnUrl"] = "/#agenda"; // state-change buttons come back to this section
+    ViewData["Compact"] = true;
+
+    (string Image, string Label, string Alt)[] family =
+    [
+        ("husky", "Perros", "Cachorro husky"),
+        ("frenchie-cono", "En recuperación", "Bulldog francés con collar isabelino"),
+        ("cuyo", "Cuyos", "Cuyo"),
+        ("hamster", "Hámsters", "Hámster con estetoscopio"),
+        ("conejo", "Conejos", "Conejo belier"),
+        ("salchicha-enfermera", "Enfermería", "Perro salchicha con uniforme de enfermería")
+    ];
+
+    (string Name, string Role, string Word, string Image)[] team =
+    [
+        ("Dr. Toby", "Medicina general", "vet", "vet-perro"),
+        ("Dra. Nieve", "Especialista en felinos", "gato", "vet-gato"),
+        ("Lupita", "Enfermería y vacunas", "amor", "salchicha-enfermera")
+    ];
 }
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <div>
-        <h1 class="h3 mb-0">Agenda de hoy</h1>
-        <div class="text-muted text-capitalize">@Model.Today.ToString("dddd d 'de' MMMM 'de' yyyy")</div>
+
+@* ───────── Hero ───────── *@
+<section class="hero" aria-labelledby="hero-title">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <span class="giant hero-giant" aria-hidden="true">mascota</span>
+    <img class="bone bone-1" src="~/img/mascotas/hueso.webp" alt="" width="800" height="550" />
+    <img class="bone bone-2" src="~/img/mascotas/hueso.webp" alt="" width="800" height="550" />
+
+    <div class="hero-puppy" aria-hidden="true">
+        <img src="~/img/mascotas/perro-pata.webp" alt="" width="468" height="900" fetchpriority="high" />
     </div>
-    <a class="btn btn-primary" asp-controller="Appointments" asp-action="Create">
-        <i class="bi bi-calendar-plus"></i> Agendar cita
-    </a>
-</div>
 
-<div class="row g-3 mb-4">
-    @foreach (var status in Enum.GetValues<AppointmentStatus>())
-    {
-        <div class="col-6 col-md-3">
-            <a class="card stat-card text-decoration-none h-100"
-               asp-controller="Appointments" asp-action="Index"
-               asp-route-date="@Model.Today.ToString("yyyy-MM-dd")" asp-route-status="@status">
-                <div class="card-body">
-                    <div class="small text-muted">@status.ToDisplayName()</div>
-                    <div class="fs-2 fw-semibold text-body">@Model.CountFor(status)</div>
+    <div class="mm-container hero-inner">
+        <div class="hero-copy">
+            <div class="hero-title-wrap">
+                <div class="hero-kitten" aria-hidden="true">
+                    <img src="~/img/mascotas/gato-asomado.webp" alt="" width="797" height="759" />
                 </div>
-            </a>
+                <h1 id="hero-title" class="hero-title">
+                    <span class="text-turquoise">Pequeños cuidados,</span>
+                    <span>grandes resultados</span>
+                </h1>
+            </div>
+            <p class="hero-sub">Agenda la consulta de tu mejor amigo en segundos: solo te mostramos horarios libres, sin empalmes.</p>
+            <div class="hero-ctas">
+                <a class="mm-cta" asp-controller="Appointments" asp-action="Create">
+                    <span class="mm-cta-text"><strong>Agenda una cita</strong><span>55 9696 9191</span></span>
+                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                </a>
+                <a class="mm-cta-outline" asp-controller="Services" asp-action="Index">Ver servicios <span aria-hidden="true">→</span></a>
+            </div>
         </div>
-    }
-</div>
+    </div>
 
-<div class="card">
-    <div class="card-header bg-white fw-semibold">Citas del día</div>
-    @if (Model.TodayAppointments.Count == 0)
-    {
-        <div class="card-body text-muted">No hay citas para hoy.</div>
-    }
-    else
-    {
-        <ul class="list-group list-group-flush">
-            @foreach (var a in Model.TodayAppointments)
+    <ul class="hero-cards" aria-label="Resumen de la clínica">
+        <li class="info-card">
+            <span class="info-num" data-count="@Model.TodayAppointments.Count">@Model.TodayAppointments.Count</span>
+            <span class="info-label">@(Model.TodayAppointments.Count == 1 ? "cita hoy" : "citas hoy")</span>
+            <span class="info-sub">@pendingToday por confirmar</span>
+        </li>
+        <li class="info-card">
+            <span class="info-num">@Model.HoursLabel</span>
+            <span class="info-label">@Model.OpenDaysLabel</span>
+            <span class="info-sub">cada @Model.SlotMinutes min</span>
+        </li>
+        <li class="info-card">
+            <span class="info-num" data-count="0">0</span>
+            <span class="info-label">empalmes</span>
+            <span class="info-sub">el sistema los bloquea</span>
+        </li>
+    </ul>
+</section>
+
+@* ───────── Atendemos a toda la familia ───────── *@
+<section class="family" id="familia" aria-labelledby="family-title">
+    <div class="mm-container">
+        <h2 id="family-title" class="section-title">Atendemos a<br /><span class="text-turquoise">toda la familia</span></h2>
+        <p class="section-sub">Perros de todas las razas, gatos, cuyos, hámsters y conejos.<br class="d-none d-md-inline" /> Cada especie con su servicio y su propia duración de cita.</p>
+    </div>
+    <div class="family-stage" data-reveal>
+        <span class="giant family-giant" aria-hidden="true">todos</span>
+        <div class="family-floor" aria-hidden="true"></div>
+        <ul class="mm-container family-row">
+            @for (var i = 0; i < family.Length; i++)
             {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="fw-semibold me-2">@a.Start.ToString("HH:mm")–@a.End.ToString("HH:mm")</span>
-                        @a.Pet?.Name <span class="text-muted">· @a.VetService?.Name · @a.Pet?.Owner?.Name</span>
-                    </div>
-                    <partial name="_StatusBadge" model="a.Status" />
+                var pet = family[i];
+                <li class="family-pet family-pet-@pet.Image" style="--i:@i">
+                    <img src="~/img/mascotas/@(pet.Image).webp" alt="@pet.Alt" loading="lazy" />
+                    <span class="chip-white">@pet.Label</span>
                 </li>
             }
         </ul>
-    }
-    <div class="card-footer bg-white">
-        <a asp-controller="Appointments" asp-action="Index" asp-route-date="@Model.Today.ToString("yyyy-MM-dd")">Ver y administrar las citas de hoy →</a>
     </div>
-</div>
+</section>
+
+@* ───────── Nuestro equipo ───────── *@
+<section class="team" id="equipo" aria-labelledby="team-title">
+    <div class="mm-container">
+        <h2 id="team-title" class="section-title">Nuestro equipo</h2>
+        <p class="section-sub">Profesionales (muy peludos) para cada consulta.</p>
+        <div class="team-grid">
+            @foreach (var member in team)
+            {
+                <article class="team-card team-card-@member.Image">
+                    <span class="team-word" aria-hidden="true">@member.Word</span>
+                    <img src="~/img/mascotas/@(member.Image).webp" alt="" loading="lazy" />
+                    <div class="team-tag">
+                        <h3>@member.Name</h3>
+                        <p>@member.Role</p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+@* ───────── Agenda de hoy (the real system panel) ───────── *@
+<section class="agenda" id="agenda" aria-labelledby="agenda-title">
+    <div class="mm-container">
+        <div class="agenda-grid">
+            <div class="agenda-main">
+                <div class="agenda-head">
+                    <h2 id="agenda-title" class="section-title mb-0">Agenda de hoy</h2>
+                    <span class="date-chip">@todayLabel</span>
+                </div>
+
+                <div class="filter-chips" role="group" aria-label="Filtrar por estado" data-filter-group>
+                    <button type="button" class="filter-chip is-active" data-filter="all" aria-pressed="true">Todas · @Model.TodayAppointments.Count</button>
+                    @foreach (var status in Enum.GetValues<AppointmentStatus>())
+                    {
+                        var label = status switch
+                        {
+                            AppointmentStatus.Pending => "Pendientes",
+                            AppointmentStatus.Confirmed => "Confirmadas",
+                            AppointmentStatus.Attended => "Atendidas",
+                            _ => "Canceladas"
+                        };
+                        <button type="button" class="filter-chip" data-filter="@status" aria-pressed="false">@label · @Model.CountFor(status)</button>
+                    }
+                </div>
+
+                @if (Model.TodayAppointments.Count == 0)
+                {
+                    <div class="empty-state">
+                        <img src="~/img/mascotas/avatar/hamster.webp" alt="" width="96" height="96" />
+                        <div>
+                            <strong>No hay citas para hoy.</strong>
+                            <p class="mb-0">Agenda la primera desde <a asp-controller="Appointments" asp-action="Create">Nueva cita</a>.</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <ul class="appt-list" data-filter-list>
+                        @foreach (var a in Model.TodayAppointments)
+                        {
+                            <li data-status="@a.Status">
+                                <partial name="_AppointmentRow" model="a" />
+                            </li>
+                        }
+                    </ul>
+                    <p class="filter-empty" hidden>No hay citas con ese estado hoy.</p>
+                }
+
+                <a class="link-arrow" asp-controller="Appointments" asp-action="Index" asp-route-date="@Model.Today.ToString("yyyy-MM-dd")">Ver y administrar todas las citas de hoy →</a>
+            </div>
+
+            <aside class="agenda-side" aria-labelledby="quick-title">
+                <img class="quick-hamster" src="~/img/mascotas/hamster.webp" alt="" width="519" height="726" loading="lazy" />
+                <div class="quick-card">
+                    <h2 id="quick-title" class="quick-title">Nueva cita rápida</h2>
+                    @if (quick is null)
+                    {
+                        <p class="quick-sub">Registra primero un servicio para poder agendar.</p>
+                        <a class="mm-btn mm-btn-dark w-100" asp-controller="Services" asp-action="Create">Crear servicio</a>
+                    }
+                    else
+                    {
+                        <p class="quick-sub">@quick.Name · @quick.DurationMinutes min · @quickDayLabel</p>
+                        @* Filled by wwwroot/js/home.js with GET /Appointments/Availability (AJAX). *@
+                        <div class="quick-slots" id="quick-slots"
+                             data-availability-url="@Url.Action("Availability", "Appointments")"
+                             data-create-url="@Url.Action("Create", "Appointments")"
+                             data-service-id="@quick.Id"
+                             data-date="@Model.QuickDate.ToString("yyyy-MM-dd")"
+                             data-open="@Model.OpeningTime.ToString("HH:mm")"
+                             data-close="@Model.ClosingTime.ToString("HH:mm")"
+                             data-step="@Model.SlotMinutes"
+                             data-duration="@quick.DurationMinutes"
+                             aria-live="polite">
+                            <span class="quick-loading">Cargando horarios…</span>
+                        </div>
+                        <p class="quick-note">Horarios tachados = ocupados. Se cargan sin recargar la página.</p>
+                        <a class="mm-btn mm-btn-dark w-100" id="quick-book"
+                           asp-controller="Appointments" asp-action="Create"
+                           asp-route-serviceId="@quick.Id" asp-route-date="@Model.QuickDate.ToString("yyyy-MM-dd")">Elegir horario</a>
+                    }
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+@* ───────── Bath banner ───────── *@
+<section class="bath" aria-labelledby="bath-title">
+    <div class="bath-giant" aria-hidden="true">
+        <span class="giant">baño</span>
+        <span class="giant">baño</span>
+        <span class="giant">baño</span>
+    </div>
+    <img class="bath-pets" src="~/img/mascotas/pacientes.webp" alt="Perro y gato envueltos en una toalla después del baño" width="1021" height="776" loading="lazy" />
+    <img class="bone bone-3" src="~/img/mascotas/hueso.webp" alt="" width="800" height="550" loading="lazy" />
+    <div class="mm-container bath-inner">
+        <p class="bath-hello">¡Hola, humano!</p>
+        <h2 id="bath-title" class="bath-title">Es hora de un<br /><span class="text-turquoise">baño</span></h2>
+        @if (Model.BathService is { } bath)
+        {
+            <p class="bath-text">@bath.Name desde @bath.Price.ToString("C0") · @bath.DurationMinutes minutos.</p>
+            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@bath.Id">Reservar baño →</a>
+        }
+        else
+        {
+            <p class="bath-text">Pronto agregaremos baño y estética al catálogo de servicios.</p>
+            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Services" asp-action="Index">Ver servicios →</a>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

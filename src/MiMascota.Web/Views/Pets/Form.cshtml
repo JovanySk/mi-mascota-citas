@@ -2,18 +2,25 @@
 @{
     var isNew = Model.Id == 0;
     ViewData["Title"] = isNew ? "Nueva mascota" : "Editar mascota";
-    string[] species = ["Perro", "Gato", "Ave", "Conejo", "Reptil", "Otro"];
+    string[] species = ["Perro", "Gato", "Cuyo", "Hámster", "Conejo", "Ave", "Reptil", "Otro"];
 }
-<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+<header class="page-head page-head-compact">
+    <div class="page-head-text">
+        <span class="eyebrow">Pacientes</span>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+    </div>
+    <span class="page-giant" aria-hidden="true">peludos</span>
+    <img class="page-pet page-pet-conejo" src="~/img/mascotas/conejo.webp" alt="" width="532" height="726" />
+</header>
 
-<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="card card-body" style="max-width: 36rem">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id.ToString())" method="post" class="mm-card mm-form mm-form-narrow">
+    <div asp-validation-summary="ModelOnly" class="mm-alert mm-alert-danger"></div>
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
         <label asp-for="Name" class="form-label"></label>
         <input asp-for="Name" class="form-control" autofocus />
-        <span asp-validation-for="Name" class="text-danger small"></span>
+        <span asp-validation-for="Name" class="field-error"></span>
     </div>
     <div class="row g-3 mb-3">
         <div class="col-sm-6">
@@ -25,12 +32,12 @@
                     <option value="@s"></option>
                 }
             </datalist>
-            <span asp-validation-for="Species" class="text-danger small"></span>
+            <span asp-validation-for="Species" class="field-error"></span>
         </div>
         <div class="col-sm-6">
             <label asp-for="Breed" class="form-label"></label>
             <input asp-for="Breed" class="form-control" placeholder="opcional" />
-            <span asp-validation-for="Breed" class="text-danger small"></span>
+            <span asp-validation-for="Breed" class="field-error"></span>
         </div>
     </div>
     <div class="mb-3">
@@ -38,12 +45,12 @@
         <select asp-for="OwnerId" asp-items='@(ViewData["Owners"] as SelectList)' class="form-select">
             <option value="0">Selecciona un dueño…</option>
         </select>
-        <span asp-validation-for="OwnerId" class="text-danger small"></span>
+        <span asp-validation-for="OwnerId" class="field-error"></span>
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="mm-btn mm-btn-primary mm-btn-lg">Guardar</button>
+        <a asp-action="Index" class="mm-btn mm-btn-ghost mm-btn-lg">Cancelar</a>
     </div>
 </form>
 

@@ -1,8 +1,12 @@
 @{
     ViewData["Title"] = "Error";
 }
-<div class="text-center py-5">
-    <h1 class="h3 text-danger">Ocurrió un error inesperado</h1>
-    <p class="text-muted">Intenta de nuevo. Si el problema continúa, avisa al administrador del sistema.</p>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Volver al inicio</a>
-</div>
+<section class="mm-card error-card">
+    <img src="~/img/mascotas/frenchie-cono.webp" alt="Bulldog francés con collar isabelino" width="536" height="828" />
+    <div>
+        <span class="eyebrow">Ups</span>
+        <h1 class="page-title">Ocurrió un error inesperado</h1>
+        <p class="page-sub">Intenta de nuevo. Si el problema continúa, avisa al administrador del sistema.</p>
+        <a asp-controller="Home" asp-action="Index" class="mm-btn mm-btn-primary mm-btn-lg">Volver al inicio</a>
+    </div>
+</section>

@@ -30,14 +30,16 @@ public class AppointmentsController(
         return View(model);
     }
 
-    // GET /Appointments/Create?date=2026-11-25&serviceId=1
-    public async Task<IActionResult> Create(DateOnly? date, int? serviceId, int? petId)
+    // GET /Appointments/Create?date=2026-11-25&serviceId=1&startTime=11:00
+    // (startTime only preselects a slot; the server checks it again on POST)
+    public async Task<IActionResult> Create(DateOnly? date, int? serviceId, int? petId, TimeOnly? startTime)
     {
         var model = new AppointmentFormViewModel
         {
             Date = date ?? DateOnly.FromDateTime(time.GetLocalNow().DateTime),
             ServiceId = serviceId,
-            PetId = petId
+            PetId = petId,
+            StartTime = startTime
         };
         await FillListsAsync(model);
         return View(model);
