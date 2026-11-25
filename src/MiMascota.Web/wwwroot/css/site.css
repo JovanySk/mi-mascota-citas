@@ -324,10 +324,17 @@ ul.card-grid, ul.row-list, ul.appt-list, ul.family-row, ul.hero-cards, ul.footer
     overflow: hidden;
     pointer-events: none;
 }
-.hero-kitten img {
-    width: 100%; height: auto; display: block;
+.kitten-frames {
+    position: relative;
     animation: kitten-rise .9s cubic-bezier(.2, .9, .25, 1.1) .35s both, kitten-bob 4.5s ease-in-out 1.6s infinite;
     transform-origin: 50% 100%;
+}
+.kitten-frames img, .footer-cat img { width: 100%; height: auto; display: block; }
+/* Same photo with closed eyes laid on top: a real blink */
+.kitten-blink {
+    position: absolute; inset: 0;
+    opacity: 0;
+    animation: kitten-blink 4.8s steps(1, end) 1.8s infinite;
 }
 
 .hero-sub {
@@ -377,12 +384,20 @@ ul.card-grid, ul.row-list, ul.appt-list, ul.family-row, ul.hero-cards, ul.footer
     height: 660px;
     width: 380px;
 }
-.hero-puppy img {
+.puppy-frames {
     position: absolute; bottom: -10px; left: 0;
-    height: 100%; width: auto;
+    height: 100%; aspect-ratio: 475 / 900;
     transform-origin: 50% 100%;
-    animation: puppy-wave 2.4s ease-in-out infinite;
+    animation: puppy-sway 5.6s ease-in-out infinite;
 }
+/* Three real photo frames (paw up / half / down) cross-faded: the puppy gives its paw */
+.puppy-frames .pf {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+}
+.pf-mid  { opacity: 0; animation: paw-mid 5.6s step-end infinite; }
+.pf-down { opacity: 0; animation: paw-down 5.6s step-end infinite; }
+.pf-up   { animation: paw-up 5.6s step-end infinite; }
 
 /* Floating bones */
 .bone { position: absolute; z-index: 0; height: auto; pointer-events: none; }
@@ -662,6 +677,7 @@ ul.family-row {
     width: 172px; height: auto;
     pointer-events: none;
 }
+.footer-cat .kitten-blink { animation-delay: 3.1s; }
 
 .footer-grid {
     display: grid;
@@ -851,9 +867,18 @@ ul.family-row {
    Animations
    ========================================================================== */
 
-@keyframes puppy-wave {
-    0%, 100% { transform: rotate(-3deg); }
-    50% { transform: rotate(3deg) translateY(-4px); }
+@keyframes puppy-sway {
+    0%, 100% { transform: rotate(-1.2deg); }
+    50% { transform: rotate(1.2deg) translateY(-3px); }
+}
+/* up (hold) -> half -> down (hold) -> half -> up; hard cuts (stop-motion), no see-through crossfade */
+@keyframes paw-up   { 0% { opacity: 1; } 38% { opacity: 0; } 72% { opacity: 1; } }
+@keyframes paw-mid  { 0% { opacity: 0; } 38% { opacity: 1; } 41% { opacity: 0; } 69% { opacity: 1; } 72% { opacity: 0; } }
+@keyframes paw-down { 0% { opacity: 0; } 41% { opacity: 1; } 69% { opacity: 0; } }
+@keyframes kitten-blink {
+    0% { opacity: 0; }
+    62% { opacity: 1; } 65% { opacity: 0; }
+    72% { opacity: 1; } 75% { opacity: 0; }
 }
 @keyframes kitten-rise {
     from { transform: translateY(105%); }
@@ -934,7 +959,7 @@ ul.family-row {
     .hero { height: auto; margin-top: -76px; padding-top: 76px; padding-bottom: 0; }
     .hero-copy { padding-top: 210px; max-width: none; }
     .hero-title { font-size: 52px; }
-    .hero-kitten { width: 190px; height: 186px; margin-bottom: -46px; left: 10px; }
+    .hero-kitten { width: 190px; height: 186px; margin-bottom: -22px; left: 10px; }
     .hero-sub { font-size: 17px; }
     .hero-ctas { gap: 14px; margin-top: 32px; }
     .hero-giant { position: absolute; left: auto; right: -40px; bottom: 300px; font-size: 220px; }
@@ -964,9 +989,11 @@ ul.family-row {
     .bath { height: auto; padding-bottom: 300px; }
     .bath-inner { padding-top: 56px; }
     .bath-title { font-size: 48px; }
-    .bath-giant { left: 30%; top: auto; bottom: -40px; }
+    .bath { padding-bottom: 380px; }
+    .bath-giant { left: auto; right: -12px; top: auto; bottom: 236px; align-items: flex-end; }
     .bath-giant .giant { font-size: 150px; }
-    .bath-pets { width: 380px; left: auto; right: -20px; }
+    .bath-giant .giant:nth-child(n+2) { display: none; }
+    .bath-pets { width: 360px; left: auto; right: -20px; }
     .bone-3 { display: none; }
 
     .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -987,7 +1014,7 @@ ul.family-row {
     .mm-container { padding-inline: 16px; }
     .hero-title { font-size: 42px; }
     .hero-copy { padding-top: 170px; }
-    .hero-kitten { width: 160px; height: 156px; margin-bottom: -38px; }
+    .hero-kitten { width: 150px; height: 146px; margin-bottom: -16px; }
     .mm-cta, .mm-cta-outline { min-height: 62px; }
     .hero-puppy { height: 380px; width: 206px; }
     .hero-cards { gap: 8px; padding: 0 12px; }

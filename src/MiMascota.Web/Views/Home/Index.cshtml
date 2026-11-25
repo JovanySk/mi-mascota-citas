@@ -38,14 +38,21 @@
     <img class="bone bone-2" src="~/img/mascotas/hueso.webp" alt="" width="800" height="550" />
 
     <div class="hero-puppy" aria-hidden="true">
-        <img src="~/img/mascotas/perro-pata.webp" alt="" width="468" height="900" fetchpriority="high" />
+        <div class="puppy-frames">
+            <img class="pf pf-up" src="~/img/mascotas/perro-pata.webp" alt="" width="475" height="900" fetchpriority="high" />
+            <img class="pf pf-mid" src="~/img/mascotas/perro-pata-media.webp" alt="" width="475" height="900" />
+            <img class="pf pf-down" src="~/img/mascotas/perro-pata-abajo.webp" alt="" width="475" height="900" />
+        </div>
     </div>
 
     <div class="mm-container hero-inner">
         <div class="hero-copy">
             <div class="hero-title-wrap">
                 <div class="hero-kitten" aria-hidden="true">
-                    <img src="~/img/mascotas/gato-asomado.webp" alt="" width="797" height="759" />
+                    <div class="kitten-frames">
+                        <img src="~/img/mascotas/gato-asomado.webp" alt="" width="794" height="759" />
+                        <img class="kitten-blink" src="~/img/mascotas/gato-parpadeo.webp" alt="" width="794" height="759" />
+                    </div>
                 </div>
                 <h1 id="hero-title" class="hero-title">
                     <span class="text-turquoise">Pequeños cuidados,</span>
@@ -58,7 +65,7 @@
                     <span class="mm-cta-text"><strong>Agenda una cita</strong><span>55 9696 9191</span></span>
                     <i class="bi bi-whatsapp" aria-hidden="true"></i>
                 </a>
-                <a class="mm-cta-outline" asp-controller="Services" asp-action="Index">Ver servicios <span aria-hidden="true">→</span></a>
+                <a class="mm-cta-outline" asp-controller="Services" asp-action="Index">Ver servicios <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             </div>
         </div>
     </div>
@@ -173,7 +180,7 @@
                     <p class="filter-empty" hidden>No hay citas con ese estado hoy.</p>
                 }
 
-                <a class="link-arrow" asp-controller="Appointments" asp-action="Index" asp-route-date="@Model.Today.ToString("yyyy-MM-dd")">Ver y administrar todas las citas de hoy →</a>
+                <a class="link-arrow" asp-controller="Appointments" asp-action="Index" asp-route-date="@Model.Today.ToString("yyyy-MM-dd")">Ver y administrar todas las citas de hoy <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             </div>
 
             <aside class="agenda-side" aria-labelledby="quick-title">
@@ -227,12 +234,12 @@
         @if (Model.BathService is { } bath)
         {
             <p class="bath-text">@bath.Name desde @bath.Price.ToString("C0") · @bath.DurationMinutes minutos.</p>
-            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@bath.Id">Reservar baño →</a>
+            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Appointments" asp-action="Create" asp-route-serviceId="@bath.Id">Reservar baño <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         }
         else
         {
             <p class="bath-text">Pronto agregaremos baño y estética al catálogo de servicios.</p>
-            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Services" asp-action="Index">Ver servicios →</a>
+            <a class="mm-btn mm-btn-primary mm-btn-lg" asp-controller="Services" asp-action="Index">Ver servicios <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         }
     </div>
 </section>

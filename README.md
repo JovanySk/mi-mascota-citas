@@ -19,6 +19,10 @@ The UI is in Spanish (the clinic's language). The code is in English.
 
 ## Screenshots
 
+**Hero animation** (the puppy gives its paw, the kitten blinks):
+
+![Animación del inicio](docs/screenshots/animacion-inicio.gif)
+
 **Inicio** (landing + the real agenda of the day, full page):
 
 ![Inicio](docs/screenshots/inicio.png)
@@ -43,8 +47,8 @@ The UI follows a design made in Figma for this project ("Mi Mascota · Inicio"):
 - **Fonts**: *Baloo 2* ExtraBold for headings, the logo and the giant background words; *Montserrat* 500/600/700 for text. Both are self-hosted in `wwwroot/fonts` (no font CDN), and so are the Bootstrap Icons.
 - **Real data in the landing**: the hero cards show today's appointments and how many are still pending, plus the opening hours from `appsettings.json`. "Agenda de hoy" lists today's appointments with the same state-transition buttons as the list. "Nueva cita rápida" calls `GET /Appointments/Availability` for the grooming service on the next open day, draws taken slots struck through and links to the booking form with the slot preselected. The bath banner reads the price and duration of the "Baño y estética" service.
 - **Pet avatars**: `PetAvatar` picks an illustration from the pet's species and breed (perro → breed-specific dog, gato, cuyo, hámster, conejo), so every list shows a face.
-- **Animations** (CSS + a little vanilla JS, all disabled with `prefers-reduced-motion`): the golden puppy waves, the kitten rises from behind the headline and then bobs, the bones float, giant words slide in from the right, the "todos" pets hop one after another when the section scrolls into view (`IntersectionObserver`), team cards lift on hover and the hero numbers count up.
-- **Images**: generated with Figma AI, backgrounds removed with rembg, converted to WebP. See [docs/CREDITS.md](docs/CREDITS.md).
+- **Animations** (CSS + a little vanilla JS, all disabled with `prefers-reduced-motion`): the golden puppy really gives its paw (three photo frames of the same puppy, paw up / half / down, swapped stop-motion style), the kitten rises from behind the headline, bobs and blinks (a closed-eyes version of the same photo laid on top), the bones float, giant words slide in from the right, the "todos" pets hop one after another when the section scrolls into view (`IntersectionObserver`), team cards lift on hover and the hero numbers count up.
+- **Images**: generated with Figma AI; the animation frames (paw half/down, closed eyes) were edited from the same photos with OpenAI's image model so only the paw or the eyes change. Backgrounds removed with rembg, converted to WebP. See [docs/CREDITS.md](docs/CREDITS.md).
 
 ## Domain rules
 

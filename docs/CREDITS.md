@@ -7,3 +7,8 @@ The transparent PNG cutouts are kept in `assets/cutouts/` as the source for thos
 The clinic, the people, the phone numbers and the address shown in the app are fictional.
 
 Fonts: [Baloo 2](https://fonts.google.com/specimen/Baloo+2) and [Montserrat](https://fonts.google.com/specimen/Montserrat) (SIL Open Font License), self-hosted from the Fontsource packages. Icons: [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT).
+
+
+## Animation frames
+
+`perro-pata-media`, `perro-pata-abajo` and `gato-parpadeo` are edits of the original puppy and kitten photos made with OpenAI's image model (gpt-image, through Codex). Only the paw or eye region of each edit is blended onto the original photo, so the frames line up.
